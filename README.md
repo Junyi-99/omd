@@ -39,7 +39,8 @@
 
 ## Get Started
 
-1. Install [Go](https://go.dev/dl/) and clone the repository if it is not already present.
+1. Clone the repository if it is not already present. [Go](https://go.dev/dl/) is only
+   needed when no prebuilt `omd` matches your platform and revision (see below).
 
 ```sh
 [ -d ~/.oh-my-dotfiles ] || git clone https://github.com/Junyi-99/dotfiles.git ~/.oh-my-dotfiles
@@ -72,9 +73,14 @@ omd
 
 The native TUI uses Go 1.27.1, Bubble Tea v2.0.10, and Lip Gloss v2.0.6.
 `cmd/omd/go.mod` and `cmd/omd/go.sum` pin the toolchain requirement and dependency versions.
-The launcher builds into `cache/omd/omd` on first use and when Go sources change.
-The Go toolchain and modules are downloaded automatically on the first build;
-later launches use the cached binary. Shell startup loads `etc/omd/env.sh` and
+The launcher `bin/omd` caches the binary in `cache/omd/omd`, keyed on the git
+tree of `cmd/omd`. When the cache is stale it downloads the prebuilt binary for
+Linux (x86_64, arm64, arm) or macOS (x86_64, arm64) from the rolling `omd`
+GitHub Release, which CI publishes for every change to `cmd/omd` together with
+a `SHA256SUMS` file; the download is accepted only if that file names the same
+`cmd/omd` tree and the checksum matches. Otherwise, and whenever `cmd/omd` has
+uncommitted edits, it builds from source with Go (toolchain and modules are
+fetched automatically into `cache/`). Shell startup loads `etc/omd/env.sh` and
 starts a background update check at the configured interval.
 
 ```sh

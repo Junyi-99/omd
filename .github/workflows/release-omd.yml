@@ -1,0 +1,47 @@
+name: Release omd
+
+# Publish prebuilt omd binaries to the rolling "omd" release. bin/omd downloads
+# the one for its platform and verifies it against SHA256SUMS, so users do not
+# need Go unless they edit cmd/omd.
+on:
+  push:
+    branches: [main]
+    paths:
+      - cmd/omd/**
+      - .github/workflows/release-omd.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: cmd/omd/go.mod
+          cache-dependency-path: cmd/omd/go.sum
+      - name: Build static binaries
+        working-directory: cmd/omd
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/dist"
+          for target in linux/amd64 linux/arm64 linux/arm darwin/amd64 darwin/arm64; do
+            os=${target%/*} arch=${target#*/}
+            GOOS=$os GOARCH=$arch GOARM=6 CGO_ENABLED=0 \
+              go build -trimpath -ldflags '-s -w' -o "$GITHUB_WORKSPACE/dist/omd-$os-$arch" .
+          done
+      - name: Write SHA256SUMS
+        working-directory: dist
+        run: |
+          { echo "# tree $(git rev-parse HEAD:cmd/omd)"; sha256sum omd-*; } > SHA256SUMS
+          cat SHA256SUMS
+      - name: Publish rolling release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete omd --yes --cleanup-tag || true
+          gh release create omd --target "$GITHUB_SHA" --title "omd (prebuilt)" \
+            --notes "Built from $GITHUB_SHA. bin/omd downloads these and verifies them against SHA256SUMS." \
+            dist/*

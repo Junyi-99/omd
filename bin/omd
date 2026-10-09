@@ -1,21 +1,63 @@
 #!/bin/sh
-# Build once, then run the native binary. Rebuild only when sources change.
+# Run the native omd binary. The cache is keyed on the git tree of cmd/omd:
+# when it is stale, download the prebuilt release for this exact tree
+# (verified against SHA256SUMS), else build from source with Go.
 set -eu
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-binary="$root/cache/omd/omd"
+bin="$root/cache/omd/omd"
+release="https://github.com/Junyi-99/dotfiles/releases/download/omd"
+tree=$(git -C "$root" rev-parse HEAD:cmd/omd 2>/dev/null || echo unknown)
 
-if [ ! -x "$binary" ] || [ -n "$(find "$root/cmd/omd" -type f -newer "$binary" -print -quit)" ]; then
-    if ! command -v go >/dev/null 2>&1; then
-        echo "omd: install Go (https://go.dev/dl/) to build the TUI." >&2
-        exit 1
+up_to_date() {
+    [ -x "$bin" ] && [ "$(cat "$bin.tree" 2>/dev/null)" = "$tree" ] &&
+        [ -z "$(find "$root/cmd/omd" -type f -newer "$bin" -print -quit)" ]
+}
+
+sha256() {
+    if command -v sha256sum >/dev/null 2>&1; then sha256sum "$1"; else shasum -a 256 "$1"; fi | cut -d' ' -f1
+}
+
+# Prebuilt binaries only match committed sources; local edits must be built.
+download() {
+    [ "$tree" != unknown ] || return 1
+    [ -z "$(git -C "$root" status --porcelain -- cmd/omd)" ] || return 1
+    case $(uname -s) in Linux) os=linux ;; Darwin) os=darwin ;; *) return 1 ;; esac
+    case $(uname -m) in
+        x86_64) arch=amd64 ;; aarch64 | arm64) arch=arm64 ;; armv6l | armv7l) arch=arm ;; *) return 1 ;;
+    esac
+    asset="omd-$os-$arch"
+    sums=$(curl -fsL --connect-timeout 10 --max-time 60 "$release/SHA256SUMS") || return 1
+    printf '%s\n' "$sums" | grep -q "^# tree $tree\$" || return 1
+    want=$(printf '%s\n' "$sums" | awk -v f="$asset" '$2 == f { print $1 }')
+    [ -n "$want" ] || return 1
+    echo "omd: downloading prebuilt $asset" >&2
+    curl -fsL --connect-timeout 10 --max-time 300 -o "$bin.tmp" "$release/$asset" || return 1
+    if [ "$(sha256 "$bin.tmp")" != "$want" ]; then
+        rm -f "$bin.tmp"
+        echo "omd: checksum mismatch for $asset; falling back to a local build" >&2
+        return 1
     fi
-    mkdir -p "$(dirname -- "$binary")"
+    chmod +x "$bin.tmp" && mv "$bin.tmp" "$bin"
+}
+
+build() {
+    command -v go >/dev/null 2>&1 || return 1
     (
         cd "$root/cmd/omd"
         export GOMODCACHE="${GOMODCACHE:-$root/cache/go-mod}"
         export GOCACHE="${GOCACHE:-$root/cache/go-build}"
-        go build -trimpath -o "$binary" .
+        go build -trimpath -o "$bin" .
     )
+}
+
+if ! up_to_date; then
+    mkdir -p "$(dirname -- "$bin")"
+    if ! download && ! build; then
+        echo "omd: no prebuilt binary for $(uname -s)/$(uname -m) at this revision and Go is not installed." >&2
+        echo "omd: install Go (https://go.dev/dl/) to build it from source." >&2
+        exit 1
+    fi
+    echo "$tree" >"$bin.tree"
 fi
 
-exec "$binary" "$@"
+exec "$bin" "$@"
