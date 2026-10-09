@@ -1,0 +1,6 @@
+bind-addr: 127.0.0.1:8080
+auth: password
+# Do not commit a real password. Export PASSWORD (it overrides this value)
+# from a *.local file, or switch to hashed-password.
+password: CHANGE_ME
+cert: false

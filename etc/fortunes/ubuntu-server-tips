@@ -1,0 +1,202 @@
+Want to run your own cloud infrastructure in your enterprise? Ubuntu
+Enterprise Cloud powered by Eucalyptus has what you need:
+http://www.ubuntu.com/cloud
+%
+Did you know that you can get useful notifications displayed at the bottom
+of a terminal by using the byobu package? http://launchpad.net/byobu
+%
+'screen' can create multiple "windows" which you can detach and re-attach
+later.  The Byobu package makes screen even
+simpler. http://launchpad.net/byobu
+%
+The powernap package allows you to suspend servers which are not being used,
+and save energy.  https://launchpad.net/powernap
+%
+'etckeeper' allows you to save changes you make to /etc in a bazaar
+repository.  Useful to track and revert
+changes. https://help.ubuntu.com/11.10/serverguide/C/etckeeper.html
+%
+Your KVM powered virtual machines will do IOs up to seven times faster if
+you enable virtio. http://tinyurl.com/virtio
+%
+The Ubuntu Server Team is an open community always looking for feedback and
+help: https://launchpad.net/~ubuntu-server
+%
+Did you know that releases of Ubuntu labeled LTS are maintained for 5 years
+on servers? 'cat /etc/lsb-release' will tell you which release you are on.
+%
+Browse the command line history with ctrl-r and then type a few characters
+that you know are part of the command you are looking for.
+%
+Edit the command line with cut and paste: ctrl-k for cut, and ctrl-y for
+paste.
+%
+Reach the end-of-line with ctrl-e and the beginning of line with ctrl-a.
+%
+Instead of typing the user and group, if they are the same (like for
+www-data)  you can just type the user followed by a colon: 'sudo chown -R
+www-data: *'
+%
+Use the "which" command to find if an executable is in your path, and if it
+is, where you can find the file. e.g. 'which nano'
+%
+Instead of typing exit or closing the terminal if you want to logout you can
+press Ctrl+D.
+%
+Use 'tail -f file' to watch a log file as messages get appended, and use
+'tail -100 file' to change the count of lines read from the file.
+%
+An easy way to see what processes own which network connections: 'sudo
+netstat -tup' for connections and 'sudo netstat -tupl for listening process.
+%
+The 'history' command will show you the commands you've used before.
+Alternatively you can use the up arrow button to look through them.
+%
+To make a backup without typing the full path twice: 'cp
+/long/path/to/file/name{,.orig}' to create a copy with the suffix .orig
+%
+If you executed a command and neglected to use sudo, you can execute "sudo
+!!" to re-execute the previous command with sudo prepended.
+%
+Install 'denyhosts' to help protect against brute force SSH attacks,
+auto-blocking multiple attempts.
+%
+Use "iotop" for measuring hard disk I/O (current read/write) usage per
+application.
+%
+If you are using a PostgreSQL database, use "ptop" to monitor real time
+usage.
+%
+Use "iftop" to monitor current network activity connections per host.
+%
+Use "pastebinit" to copy a file, or output of a command to a webpage
+allowing you to share it. e.g. 'pastebinit /proc/cpuinfo' or 'df -h |
+pastebinit'
+%
+Use "tail -f /var/log/some.log" to see new lines added to a log instantly in
+real time.  Ideal for watching webserver requests as they happen.
+%
+Save time starting to type a command or file name, then press tab to
+complete Hit tab twice to bring up multiple completion options.
+%
+Append your ssh key to your server's authorized keys file using the command
+'ssh-copy-id user@server_address'
+%
+If you want to download a file from a URL via the console, you can use the
+command 'wget http://address/to/file.tar'
+%
+To manage Apache modules use "a2enmod" to enable and "a2dismod" to disable.
+e.g. 'sudo a2enmod rewrite'
+%
+To manage Apache virtualhosts use "a2ensite" to enable and "a2dissite" to
+disable. e.g. "sudo a2ensite example.org"
+%
+Use "top" to get a view of your server's performance such as processor,
+memory and swap utilisation and see a rolling display of the top cpu using
+processes.
+%
+If you need to perform a command a second time on a different file, you can
+use command replacement with the ^ symbol. e.g. "cp foo.txt
+/to/some/directory" then "^foo^bar", expanding to: "cp bar.txt
+/to/some/directory".
+%
+You can contact the Ubuntu Server team on IRC using chat.freenode.net in
+channel #ubuntu-server. You can also use http://webchat.freenode.net.
+%
+You can edit your network configuration in /etc/network/interfaces and
+enable your changes by issuing the command sudo /etc/init.d/networking
+restart.
+%
+If the empty file ~/.hushlogin exists on the server, login to the server
+will be super quiet. Only the bash prompt is displayed.
+%
+To find a package which name or description contains a keyword use:
+'apt-cache search <keyword>'. 'apt-cache showpkg <packagename>' to get
+details.
+%
+If you need to compile a piece of software, you may need to install the
+build-essential package. Use 'sudo apt-get install build-essential'.
+%
+You can use the text-based web browser w3m to browse the Internet in your
+console screen. e.g 'w3m http://ubuntu.com'
+%
+The free command tells you the status of your memory and swap, how much you
+have used and how much you have left.
+%
+If you know you typed a command or password wrong, you can use ctrl + u to
+delete the whole line or ctrl + w to delete just a word.
+%
+Typing 'dmesg | tail' after you plug in usb storage will give you its
+partition name (ex: /dev/sdb1) simplifying the mounting process.
+%
+The column allows you to format output neatly. ex: 'mount | column -t' will
+reformat mount's messy output. See 'man column' for more info.
+%
+Use awk to quickly filter columns from some command output.  e.g.: ls -l |
+awk '{print $3 " " $9}'
+%
+You can change your hostname by editing the file /etc/hostname.
+%
+Use 'dpkg --get-selections > selections.txt' to save a selection and 'dpkg
+--set-selections < selections.txt && apt-get dselect-upgrade' to restore.
+%
+To deactivate a service at boot, for example, apache2: 'sudo update-rc.d -f
+apache2 remove'. To activate it: 'sudo update-rc.d apache2 install
+defaults'.
+%
+Tired of repeatedly pressing 'y' through some shell process (e.g. fsck)? Try
+the 'yes' command. 'man yes' for more info.
+%
+For a lightweight VPN alternative, have a look at ssh + netcat-openbsd for
+SOCKS proxy support.
+%
+Use the 'watch' command to repeat the same command a regular interval and
+get helpful datetime output. 'man watch' for more details.
+%
+Use lsof to find out which process has open handles for a file. 'lsof +D
+/path' will find all processes for the given path. This is useful for
+unmounting media.
+%
+A for loop in bash syntax: 'for i in * ; do echo $i ; done'.
+%
+Default installations do not provide a complete version of the vim text
+editor.  Install vim-full if vi is your preferred editor.
+%
+Need a little refresh on networking concept? Take a look at the networking
+section of the server guide.
+https://help.ubuntu.com/11.10/serverguide/C/networking.html
+%
+Keep your servers time in sync, use the ntpd package.
+https://help.ubuntu.com/11.10/serverguide/C/NTP.html
+%
+Package updates can be automated on your server using the
+unattended-upgrades package.
+https://help.ubuntu.com/11.10/serverguide/C/automatic-updates.html
+%
+Documentation and other resources pointers for Ubuntu Server Edition are
+provided at: http://www.ubuntu.com/server/doc
+%
+Two packages are recommended to perform backups of your clients and servers
+in ubuntu: 'backuppc' and 'bacula'.
+%
+To have grep return the string you are looking for without checking for
+upper or lower case use '-i'.  e.g. grep -i readme somefile.txt
+%
+Successive commands usually process the same argument. 'Alt-.' inserts the
+last argument of the previous command. GNU readline rocks, read the manual.
+%
+To restrict ssh logins to certain commands, have a look at the ForceCommand
+directive (see "man sshd_config").
+%
+Unsure if AppArmor might be causing an issue? Don't disable it, use the
+proper debugging procedure: https://wiki.ubuntu.com/DebuggingApparmor
+%
+Having trouble with DNS records? dig, ping and named-checkzone are great
+tools to debug your bind9 setup.
+%
+To find in which file an event has been logged in use 'ls -ltr /var/log |
+tail' which will display the last modified logs.
+%
+You can add "| grep word" to search for a word in the output of a command.
+grep can also search through several files: "grep -r -e word /etc".
+%

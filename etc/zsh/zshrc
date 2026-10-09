@@ -1,0 +1,107 @@
+# ZSH Configuration ========= BEGIN =======
+
+if [ -z "$USER_BIN_HOME" ]; then
+    echo "USER_BIN_HOME is not set. Make sure ~/.zshenv sources ~/.oh-my-dotfiles/etc/zsh/zshenv" >&2
+    return 1
+fi
+
+# --- Basic ZSH settings ---
+
+# History
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=$USER_CONFIG_HOME/.history
+setopt HIST_IGNORE_DUPS      # 不记录重复命令
+setopt HIST_IGNORE_SPACE     # 空格开头的命令不记录
+setopt SHARE_HISTORY         # 多终端共享历史
+setopt APPEND_HISTORY        # 追加而非覆盖
+
+# Directory navigation
+setopt AUTO_CD               # 输入目录名直接 cd
+setopt AUTO_PUSHD            # cd 自动 pushd
+setopt PUSHD_IGNORE_DUPS
+
+# Completion system
+autoload -Uz compinit
+# Cached compinit: only run the slow security audit once per day.
+_zcompdump="${XDG_CACHE_HOME:-$HOME/.cache}/zcompdump"
+if [[ -n "$_zcompdump"(#qN.mh+24) ]] || [[ ! -f "$_zcompdump" ]]; then
+    compinit -d "$_zcompdump"
+else
+    compinit -C -d "$_zcompdump"
+fi
+unset _zcompdump
+zstyle ':completion:*' menu select                          # 菜单选择
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'  # 大小写不敏感补全
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"     # 补全着色
+
+# Key bindings (emacs mode)
+bindkey -e
+bindkey '^[[A' up-line-or-search      # Up arrow: history search
+bindkey '^[[B' down-line-or-search    # Down arrow: history search
+
+# --- PATH ---
+# Keep the repo's bin first so its launchers win over system copies.
+typeset -U path
+path=("$USER_BIN_HOME" "$HOME/bin" "$HOME/.local/bin" $path /usr/local/bin)
+
+# --- omd: load the generated environment; install explicitly with `omd` ---
+if [ ! -f "${XDG_CONFIG_HOME}/omd/packages.conf" ]; then
+    echo "Run 'omd' to select and install your tools."
+fi
+[ -f "${XDG_CONFIG_HOME}/omd/env.sh" ] && source "${XDG_CONFIG_HOME}/omd/env.sh"
+
+# After env.sh, so tools installed by omd (e.g. via Homebrew) are on PATH.
+print_greetings
+
+# Check for dotfiles updates in the background at the configured interval.
+if [ -f "${XDG_CONFIG_HOME}/omd/packages.conf" ] && command -v omd >/dev/null 2>&1; then
+    omd auto-update </dev/null >/dev/null 2>&1 &!
+fi
+
+# --- pnpm ---
+export PNPM_HOME="${USER_CONFIG_HOME}/data/pnpm"
+[ -d "$PNPM_HOME" ] && path=("$PNPM_HOME" $path)
+
+# --- bun ---
+export BUN_INSTALL="$HOME/.bun"
+[ -d "$BUN_INSTALL/bin" ] && path=("$BUN_INSTALL/bin" $path)
+
+# --- 各家 installer 原本塞进 ~/.zshrc 的东西，收拢到这里 ---
+export CLAUDE_CODE_NO_FLICKER=1
+
+# 注意：这行和 etc/tmux/tmux.conf 的 default-terminal "tmux-256color" 不一致，
+# 但 tmux 内部会自己覆盖 TERM，保持原样以免改变行为。
+export TERM=xterm-256color
+
+# --- Aliases ---
+alias c="claude --dangerously-skip-permissions"
+alias claude="claude --dangerously-skip-permissions"
+alias codex="codex --dangerously-bypass-approvals-and-sandbox"
+alias zj="zellij"
+alias s="kitten ssh"
+
+# Reload OMD's generated shell integration after saving or installing selections.
+omd() {
+    command omd "$@"
+    local omd_status=$?
+    if (( $# == 0 )) || [[ "$1" == "install" || "$1" == "env" ]]; then
+        [ -f "${XDG_CONFIG_HOME}/omd/env.sh" ] && source "${XDG_CONFIG_HOME}/omd/env.sh"
+    fi
+    return $omd_status
+}
+
+# atuin（shell 历史）
+if [ -f "$HOME/.atuin/bin/env" ]; then
+    . "$HOME/.atuin/bin/env"
+    command -v atuin &>/dev/null && eval "$(atuin init zsh --disable-up-arrow)"
+fi
+
+# otty shell integration —— 只有从 Otty 启动时才生效
+if [ -n "$OTTY_SHELL_INTEGRATION" ] && [ -r "$OTTY_SHELL_INTEGRATION/otty-integration.zsh" ]; then
+    . "$OTTY_SHELL_INTEGRATION/otty-integration.zsh"
+fi
+
+echo ""
+echo "ZSH is ready for ${HOST} 🚀"
+echo ""

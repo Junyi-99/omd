@@ -1,0 +1,8 @@
+# This file should be sourced by ~/.zshenv
+
+export USER_CONFIG_HOME="${HOME}/.oh-my-dotfiles"
+. ${USER_CONFIG_HOME}/.xdg.sh    # The universal config folder re-location
+. ${USER_CONFIG_HOME}/.funcs.sh  # 载入自定义的函数
+
+# check if .cargo/env exists and source it
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"

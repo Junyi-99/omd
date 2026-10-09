@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: cmd/omd/go.mod
+          cache-dependency-path: cmd/omd/go.sum
+      - name: gofmt
+        working-directory: cmd/omd
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - name: go vet
+        working-directory: cmd/omd
+        run: go vet ./...
+      - name: go test
+        working-directory: cmd/omd
+        run: go test ./...
+      - name: Install zsh and shellcheck
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y zsh shellcheck
+      - name: shellcheck
+        if: runner.os == 'Linux'
+        run: shellcheck --severity=warning .funcs.sh .xdg.sh bin/omd etc/tmux/*.sh
+      - name: zsh syntax
+        run: zsh -n etc/zsh/zshenv etc/zsh/zshrc etc/zsh/zprofile .funcs.sh .xdg.sh
+      - name: Build omd launcher
+        run: bin/omd version

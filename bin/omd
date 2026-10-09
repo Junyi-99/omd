@@ -1,0 +1,21 @@
+#!/bin/sh
+# Build once, then run the native binary. Rebuild only when sources change.
+set -eu
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+binary="$root/cache/omd/omd"
+
+if [ ! -x "$binary" ] || [ -n "$(find "$root/cmd/omd" -type f -newer "$binary" -print -quit)" ]; then
+    if ! command -v go >/dev/null 2>&1; then
+        echo "omd: install Go (https://go.dev/dl/) to build the TUI." >&2
+        exit 1
+    fi
+    mkdir -p "$(dirname -- "$binary")"
+    (
+        cd "$root/cmd/omd"
+        export GOMODCACHE="${GOMODCACHE:-$root/cache/go-mod}"
+        export GOCACHE="${GOCACHE:-$root/cache/go-build}"
+        go build -trimpath -o "$binary" .
+    )
+fi
+
+exec "$binary" "$@"

@@ -1,0 +1,6 @@
+
+Host CustomName
+    User USER_NAME
+    ProxyCommand /opt/homebrew/bin/cloudflared access ssh --hostname SOME_HOST_NAME
+
+# config-* files are used to store configuration data that is used by oh-my-dotfiles
