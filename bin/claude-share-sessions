@@ -1,0 +1,117 @@
+#!/bin/bash
+# Share Claude Code sessions across accounts that use separate CLAUDE_CONFIG_DIRs
+# (e.g. `CLAUDE_CONFIG_DIR=~/.claude-xtra claude`), so `--resume` sees every
+# account's sessions. Login state (.claude.json, .credentials.json) stays per
+# account; session data moves into one shared dir and each account symlinks it.
+#
+# Usage: claude-share-sessions [-f] [CONFIG_DIR...]
+#   CONFIG_DIR defaults to every ~/.claude-* dir except the shared one.
+#   -f  run even if a claude process is alive (it may be writing a transcript).
+# Env:  CLAUDE_SHARED_DIR (default ~/.claude-shared)
+#       CLAUDE_CLEANUP_DAYS (default 90), written to each settings.json.
+#
+# Idempotent: already-linked entries are skipped, so rerun it after adding an
+# account. Same-named files with different content are not lost: the shared
+# copy is overwritten and the previous one kept with a .bak-<account> suffix.
+set -euo pipefail
+
+shared="${CLAUDE_SHARED_DIR:-$HOME/.claude-shared}"
+cleanup_days="${CLAUDE_CLEANUP_DAYS:-90}"
+dirs=(projects file-history plans todos)
+
+force=0
+if [ "${1:-}" = "-f" ]; then
+    force=1
+    shift
+fi
+
+if [ "$force" -eq 0 ] && pgrep -x claude >/dev/null; then
+    echo "claude-share-sessions: quit all claude sessions first (or pass -f)." >&2
+    pgrep -lx claude >&2
+    exit 1
+fi
+
+configs=("$@")
+if [ ${#configs[@]} -eq 0 ]; then
+    for c in "$HOME"/.claude-*/; do
+        c="${c%/}"
+        [ "$c" = "$shared" ] || configs+=("$c")
+    done
+fi
+if [ ${#configs[@]} -eq 0 ]; then
+    echo "claude-share-sessions: no ~/.claude-* config dirs found." >&2
+    exit 1
+fi
+
+mkdir -p "$shared"
+
+# Move one account's dir into the shared dir, then link it back.
+share_dir() {
+    local config="$1" name="$2" account
+    account="$(basename "$config")"
+    mkdir -p "$shared/$name"
+    if [ -L "$config/$name" ]; then
+        return
+    fi
+    if [ -d "$config/$name" ]; then
+        rsync -a --checksum --backup --suffix=".bak-$account" "$config/$name/" "$shared/$name/"
+        rm -rf "${config:?}/$name"
+        echo "  moved  $config/$name"
+    fi
+    ln -s "$shared/$name" "$config/$name"
+    echo "  linked $config/$name"
+}
+
+# Merge prompt history (the ↑ / Ctrl+R list), ordered by timestamp.
+share_history() {
+    local config="$1" target="$shared/history.jsonl" tmp
+    if [ -L "$config/history.jsonl" ]; then
+        return
+    fi
+    touch "$target"
+    chmod 600 "$target"
+    if [ -f "$config/history.jsonl" ]; then
+        tmp="$(mktemp)"
+        if command -v jq >/dev/null; then
+            cat "$target" "$config/history.jsonl" | jq -sc 'sort_by(.timestamp) | .[]' >"$tmp"
+        else
+            cat "$target" "$config/history.jsonl" >"$tmp"
+        fi
+        cat "$tmp" >"$target"
+        rm -f "$tmp" "$config/history.jsonl"
+        echo "  merged $config/history.jsonl"
+    fi
+    ln -s "$target" "$config/history.jsonl"
+    echo "  linked $config/history.jsonl"
+}
+
+# Shared transcripts are pruned by whichever account cleans up first, so every
+# account gets the same retention.
+set_cleanup_days() {
+    local settings="$1/settings.json" tmp
+    [ -f "$settings" ] || echo '{}' >"$settings"
+    tmp="$(mktemp)"
+    if command -v jq >/dev/null; then
+        jq --argjson d "$cleanup_days" '.cleanupPeriodDays = $d' "$settings" >"$tmp"
+    else
+        python3 -c 'import json,sys; s=json.load(open(sys.argv[1])); s["cleanupPeriodDays"]=int(sys.argv[2]); print(json.dumps(s, indent=2))' \
+            "$settings" "$cleanup_days" >"$tmp"
+    fi
+    mv "$tmp" "$settings"
+    echo "  set    cleanupPeriodDays=$cleanup_days in $settings"
+}
+
+for config in "${configs[@]}"; do
+    if [ ! -d "$config" ]; then
+        echo "claude-share-sessions: $config is not a directory, skipped." >&2
+        continue
+    fi
+    echo "$config"
+    for name in "${dirs[@]}"; do
+        share_dir "$config" "$name"
+    done
+    share_history "$config"
+    set_cleanup_days "$config"
+done
+
+echo "Sessions shared via $shared"

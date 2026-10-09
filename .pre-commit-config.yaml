@@ -13,7 +13,7 @@ repos:
     hooks:
     -   id: shellcheck
         args: [--severity=warning]
-        files: ^(\.funcs\.sh|\.xdg\.sh|bin/omd|etc/tmux/.*\.sh)$
+        files: ^(\.funcs\.sh|\.xdg\.sh|bin/omd|bin/claude-share-sessions|etc/tmux/.*\.sh)$
 -   repo: https://github.com/JohnnyMorganz/StyLua
     rev: v2.5.2
     hooks:

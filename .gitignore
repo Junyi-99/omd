@@ -5,6 +5,7 @@ tmp/
 man/
 bin/*
 !bin/omd
+!bin/claude-share-sessions
 lib/
 dep/
 data/
