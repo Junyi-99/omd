@@ -279,6 +279,24 @@ fi
 			},
 		},
 		{
+			ID:          "syncthing",
+			Name:        "Syncthing",
+			Description: "Continuous peer-to-peer file synchronization",
+			Tab:         "Basics",
+			Category:    "Tools",
+			Presets:     fullPreset,
+			Check:       "command -v syncthing",
+			Installers: map[string]Installer{
+				"darwin": brewInstaller("syncthing"),
+				"linux": {Release: &Release{
+					Repo:  "syncthing/syncthing",
+					Asset: "syncthing-linux-{arch}-{tag}.tar.gz",
+					Arch:  map[string]string{"amd64": "amd64", "arm64": "arm64", "arm": "arm"},
+					Bins:  []string{"syncthing"},
+				}},
+			},
+		},
+		{
 			ID:          "kitty-config-link",
 			Name:        "Kitty config symlink",
 			Description: "Link etc/kitty to ~/.config/kitty; backs up an existing config first",
