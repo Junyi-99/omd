@@ -79,6 +79,11 @@ alias c="claude --dangerously-skip-permissions"
 alias claude="claude --dangerously-skip-permissions"
 alias codex="codex --dangerously-bypass-approvals-and-sandbox"
 alias zj="zellij"
+alias claude-xtra='CLAUDE_CONFIG_DIR=~/.claude-xtra claude'
+alias claude-junyi='CLAUDE_CONFIG_DIR=~/.claude-junyi claude'
+alias codex-nus='CODEX_HOME=~/.codex-nus codex'
+alias codex-junyi='CODEX_HOME=~/.codex-junyi codex'
+alias codex-xtra='CODEX_HOME=~/.codex-xtra codex'
 alias s="kitten ssh"
 
 # Reload OMD's generated shell integration after saving or installing selections.
