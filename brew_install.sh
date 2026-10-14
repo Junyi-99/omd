@@ -7,6 +7,7 @@ google-chrome
 typora
 zotero
 stats
+font-fira-code-nerd-font
 
 
 # Formulae
