@@ -10,6 +10,7 @@ cask "google-chrome"
 cask "typora"
 cask "zotero"
 cask "stats"
+cask "font-fira-code-nerd-font"
 
 # Formulae
 brew "duf"

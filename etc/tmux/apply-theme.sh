@@ -52,6 +52,9 @@ tmux set -g @popup_dim "$dim"
 tmux set -g @popup_fg "$fg"
 
 tmux set -g @popup_alert "$alert"
+# 侧边栏（sidebar.sh）选中项配色
+tmux set -g @theme_bg "$bg"
+tmux set -g @theme_secondary "$secondary"
 tmux set -g display-panes-colour "$dim"
 tmux set -g display-panes-active-colour "$accent"
 tmux setw -g window-status-activity-style "fg=$accent,bg=$bg"

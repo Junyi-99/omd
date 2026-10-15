@@ -283,6 +283,11 @@ func TestReleaseAssetsPerArchitecture(t *testing.T) {
 			"amd64": "duf_1.2.3_linux_x86_64.tar.gz",
 			"arm64": "duf_1.2.3_linux_arm64.tar.gz",
 		},
+		"syncthing": {
+			"amd64": "syncthing-linux-amd64-v1.2.3.tar.gz",
+			"arm64": "syncthing-linux-arm64-v1.2.3.tar.gz",
+			"arm":   "syncthing-linux-arm-v1.2.3.tar.gz",
+		},
 		"starship": {
 			"amd64": "starship-x86_64-unknown-linux-musl.tar.gz",
 			"arm64": "starship-aarch64-unknown-linux-musl.tar.gz",
