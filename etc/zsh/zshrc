@@ -81,6 +81,8 @@ alias codex="codex --dangerously-bypass-approvals-and-sandbox"
 alias zj="zellij"
 alias claude-xtra='CLAUDE_CONFIG_DIR=~/.claude-xtra claude'
 alias claude-junyi='CLAUDE_CONFIG_DIR=~/.claude-junyi claude'
+alias claude-weihao='CLAUDE_CONFIG_DIR=~/.claude-weihao claude'
+alias claude-yufeng='CLAUDE_CONFIG_DIR=~/.claude-yufeng claude'
 alias codex-nus='CODEX_HOME=~/.codex-nus codex'
 alias codex-junyi='CODEX_HOME=~/.codex-junyi codex'
 alias codex-xtra='CODEX_HOME=~/.codex-xtra codex'
