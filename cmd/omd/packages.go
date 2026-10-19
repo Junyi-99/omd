@@ -32,7 +32,7 @@ type Installer struct {
 }
 
 // nvmLoad makes nvm's node and npm visible; omd's own PATH knows nothing of nvm.
-const nvmLoad = `[ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh"; `
+const nvmLoad = `NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; `
 
 // npmInstaller installs a global npm package, failing clearly without Node.js.
 func npmInstaller(pkg string) Installer {
@@ -194,15 +194,15 @@ command -v pyenv >/dev/null && eval "$(pyenv init - zsh)"
 			Tab:         "Basics",
 			Category:    "Package managers",
 			Presets:     agentPresets,
-			Check:       `. "$HOME/.nvm/nvm.sh" && nvm which 24`,
+			Check:       nvmLoad + "nvm which 24",
 			Installers: map[string]Installer{
 				"all": {
 					// PROFILE=/dev/null: the Env snippet below loads nvm, not ~/.zshrc edits.
-					Commands: []string{`curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | PROFILE=/dev/null bash && . "$HOME/.nvm/nvm.sh" && nvm install 24`},
+					Commands: []string{`curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | PROFILE=/dev/null bash && ` + nvmLoad + `nvm install 24`},
 					Requires: []string{"curl", "git"},
 				},
 			},
-			Env: `export NVM_DIR="$HOME/.nvm"
+			Env: `export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
 [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
 `,
