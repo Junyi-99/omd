@@ -36,9 +36,9 @@ type Installer struct {
 const nvmLoad = `export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; `
 
 // npmInstaller installs a global npm package, failing clearly without Node.js.
-func npmInstaller(pkg string) Installer {
+func npmInstaller(pkg string, flags ...string) Installer {
 	return Installer{Commands: []string{nvmLoad +
-		`command -v npm >/dev/null || { echo "npm not found: install Node.js (nvm) first" >&2; exit 1; }; npm install -g ` + pkg}}
+		`command -v npm >/dev/null || { echo "npm not found: install Node.js (nvm) first" >&2; exit 1; }; npm install -g ` + strings.Join(append(flags, pkg), " ")}}
 }
 
 func brewInstaller(formula string) Installer {
@@ -205,7 +205,6 @@ command -v pyenv >/dev/null && eval "$(pyenv init - zsh)"
 			},
 			Env: `export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
-[[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
 `,
 		},
 		{
@@ -346,7 +345,7 @@ fi
 			Check:       nvmLoad + "command -v claude",
 			Needs:       []string{"nodejs"},
 			Installers: map[string]Installer{
-				"all": npmInstaller("@anthropic-ai/claude-code"),
+				"all": npmInstaller("@anthropic-ai/claude-code", "--allow-scripts=@anthropic-ai/claude-code"),
 			},
 		},
 		{
