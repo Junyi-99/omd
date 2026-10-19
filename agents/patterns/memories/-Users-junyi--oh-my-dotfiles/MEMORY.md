@@ -1,0 +1,1 @@
+- [Dotfiles history merge 2026-10](dotfiles-history-merge-2026-10.md) — main merged with rewritten origin/main; backup/local-main; concurrent sessions commit here

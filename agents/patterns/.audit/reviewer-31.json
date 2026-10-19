@@ -1,0 +1,16 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deck/memory/deck-verify-with-ci-clippy-flags.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-mamba-tpu/memory/MEMORY.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-vibe-usage/memory/feedback_release_flow.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-sept15/a0b05c86-c409-42bf-a5f9-1762a47b6396.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-agent-container/47bea3a7-cdcc-4c2a-8e67-34319e8b5371.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/67278d73-9bd7-42ab-ae34-cb79f0ba57b7.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude/d5c59458-1702-4755-98e9-36c01d51a60f.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deciax/3050adc8-9a3a-4210-b3d7-853e29b482f7.jsonl"
+  ],
+  "bytes": 3879001,
+  "reviewer": "reviewer-31"
+}

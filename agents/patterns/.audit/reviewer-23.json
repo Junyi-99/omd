@@ -1,0 +1,18 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deciax/memory/laya-bench-findings.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-kimi-k3-kda/memory/tpu-kernel-first-principles.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/memory/ici-external-interconnect-refs.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deciax/b8719eb3-b653-4b28-a0e3-6d7c997c4778.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi/e3474b52-1ff4-4b53-8978-e66a322d6c59.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-mxu-sweep/0bf60b63-b45f-4292-a817-fd921134d390.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-mxu-sweep/904e9c80-c58e-4ba3-aebc-813ac32f6564.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-agent-container/31923175-a061-4173-a3f4-0fbb810b3ec4.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-sept15/38b4fbb8-30ae-433d-835f-b36fd32db4af.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-mxu-sweep/d7258cf3-dc08-48a7-ba4e-522c3632bb85.jsonl"
+  ],
+  "bytes": 3876497,
+  "reviewer": "reviewer-23"
+}

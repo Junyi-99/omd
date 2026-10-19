@@ -1,0 +1,18 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deck/memory/deck-release-lightweight-tags.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-llm-wiki/memory/paper-kb-for-kernel-gen.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-vibe-usage/memory/MEMORY.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-ownership/e58645b9-892d-4b0b-908f-0551ef679fcb.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/8943c2c1-caf3-40a7-886a-19cb9cfcf3e7.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-mxu-sweep/6ba43316-7f69-4dd5-b415-37b1bb9837e5.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-hou-junyi-github-io/99f11088-990d-4e62-9238-09481142547a.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-opensource-dashboard-container/b075c613-53b9-46fc-b2aa-76e67496c85d.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-jax/ecb4a99e-1c9c-42df-8d04-0e9d3a081943.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-skim-cc/31b0962b-4200-48e3-b540-af4e26871abd.jsonl"
+  ],
+  "bytes": 3899268,
+  "reviewer": "reviewer-30"
+}

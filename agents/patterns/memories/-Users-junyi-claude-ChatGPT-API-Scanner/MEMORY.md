@@ -1,0 +1,3 @@
+- [User controls state-change actions](feedback_pr_decisions.md) — prepare changes locally; always confirm before push/close/merge, never bundle with edits
+- [Pending SeleniumBase migration](project_seleniumbase_migration.md) — next step: replace raw selenium with SeleniumBase UC mode (uc is abandoned, Chrome 147+ broken)
+- [GitHub code search lacks pushed: qualifier](reference_github_code_search.md) — date filters only work on repo search, not code search

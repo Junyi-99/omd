@@ -1,0 +1,13 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-Downloads-pallas-kernel-targets/memory/MEMORY.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-kimi-k3-kda-aug-12-learn/memory/kda-neumann-bounded-gate-only.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-medusa/memory/MEMORY.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-tmp-humanize-demo-original-performance-takehome/memory/perf-takehome-fast-proxy.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/f980cc93-3b6c-4f08-86a3-25be7763f45c.jsonl"
+  ],
+  "bytes": 10342425,
+  "reviewer": "reviewer-07"
+}

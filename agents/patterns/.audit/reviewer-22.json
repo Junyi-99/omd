@@ -1,0 +1,16 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deciax/memory/code-block-blank-lines.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-kimi-k3-kda/memory/sglang-jax-pr1564-review.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/memory/ici-experiment-3-small.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-sept15/aa53935d-b777-4bf5-9a88-877f0a7e0b96.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-jax/b2b4854a-f7b2-48af-a1e3-9a5f0144688b.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-architecture/4f0f595d-15fa-4bc0-9bb6-c76bbc5cc13d.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude/673e1f40-8170-4ea1-86df-d18c8956ddb5.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-mxu-sweep/d16f724f-844c-4546-b83b-cb70142b9957.jsonl"
+  ],
+  "bytes": 3918873,
+  "reviewer": "reviewer-22"
+}

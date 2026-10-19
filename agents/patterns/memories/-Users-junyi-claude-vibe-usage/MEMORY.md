@@ -1,0 +1,1 @@
+- [Release flow for vibe-usage](feedback_release_flow.md) — patch-bump by default when user asks for a release without a version

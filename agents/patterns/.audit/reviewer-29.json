@@ -1,0 +1,17 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deck/memory/deck-push-direct-to-main.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-llm-wiki/memory/MEMORY.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/memory/tpu-v7-is-compute-machine-type.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi--oh-my-dotfiles/db587ed6-88e2-4e98-a0ee-3c3757607140.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-gpu-papers/5d61343c-9b64-4605-861c-9754d9c97605.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-kimi-k3-kda/9b992e11-8208-4303-b833-87ad152a2e12.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-mxu-sweep-results/4be343d5-a57b-4ba4-8a9d-089090298527.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-skim-cc-examples-demo-paper/91912def-80cd-4a56-8bd0-365f5d42de27.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-skim-cc/8c02c41a-5dec-476f-a509-e9608a614f49.jsonl"
+  ],
+  "bytes": 3886365,
+  "reviewer": "reviewer-29"
+}

@@ -1,0 +1,15 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deciax/memory/MEMORY.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-kimi-k3-kda/memory/mosaic-layout-propagation.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/memory/gdn-oracle-silu-change.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-sept15/83326f11-ca34-495a-b889-48cbb628584b.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-gpu-mpk/cff5b474-332b-4aba-aa56-14996d419be2.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-agent-container/70fcd05c-2ad7-4356-950e-fb7e6841ec9c.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude/94b3dca4-93bf-465c-aa2a-f5395aa1d775.jsonl"
+  ],
+  "bytes": 3899258,
+  "reviewer": "reviewer-21"
+}

@@ -1,0 +1,3 @@
+- [Blank lines between blocks](blank-lines-between-blocks.md) — separate logical blocks in function bodies with blank lines
+- [Research goal: VMEM → MXU](research-goal-vmem-mxu.md) — core question: allocate VMEM so MXU hits peak
+- [MXU speed is data-dependent](mxu-speed-data-dependent.md) — inf/zero data ~7% faster; chained-overflow benchmarks overstate peak

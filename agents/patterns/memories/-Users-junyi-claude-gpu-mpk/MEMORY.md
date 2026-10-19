@@ -1,0 +1,2 @@
+- [xtra disk placement](xtra-disk-placement.md) — on xtra* servers use /disk*/junyi or /ssd*/junyi when /home is full
+- [Shared GPU benchmark hygiene](shared-gpu-benchmark-hygiene.md) — xtra servers: serial runs, heartbeat GPU monitor, per-run snapshots; audit found most rows unverifiable

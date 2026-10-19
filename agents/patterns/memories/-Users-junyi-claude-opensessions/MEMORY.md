@@ -1,0 +1,1 @@
+- [tmux-sidebar terminology](feedback_tmux_sidebar_terminology.md) — Session→Project, Window→Agent Session in UI; code keeps tmux terms

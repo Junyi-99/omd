@@ -1,0 +1,5 @@
+- [No git add -A in deck](deck-no-git-add-all.md) — .claude/ and .cursor/ aren't gitignored; stage explicit paths
+- [Push direct to main in deck](deck-push-direct-to-main.md) — commit+push straight to main, no PRs (user override of CLAUDE.md)
+- [deck release process](deck-release-lightweight-tags.md) — bump+tag main; use `git -c tag.gpgSign=false tag` (lightweight) or it errors; write notes after CI
+- [Verify with CI's clippy flags](deck-verify-with-ci-clippy-flags.md) — plain `cargo clippy` misses what `-D warnings` on newer stable catches
+- [atuin data lives in dotfiles](atuin-data-in-dotfiles.md) — ~/.atuin is only the binary; db at ~/.oh-my-dotfiles/data/atuin, check with `atuin info`

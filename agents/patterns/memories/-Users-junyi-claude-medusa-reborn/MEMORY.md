@@ -1,0 +1,1 @@
+- [Ambiguous deletion lists](feedback_ambiguous_deletion.md) — when user says "其他 删掉" don't auto-expand to my own recommendation list; confirm large/irrecoverable items individually

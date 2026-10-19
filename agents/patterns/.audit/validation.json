@@ -1,0 +1,24 @@
+{
+  "reviewers": 32,
+  "master_classifiers": 1,
+  "category_verifiers": 7,
+  "categories": [
+    "benchmark-measurement",
+    "kernel-validation",
+    "inference-runtime",
+    "evidence-research",
+    "developer-tooling",
+    "documentation-production",
+    "structured-data-audit"
+  ],
+  "reports": 32,
+  "final_reports": 7,
+  "confirmed_patterns": 35,
+  "source_projects": 52,
+  "source_memory_files": 105,
+  "source_jsonl_files": 91,
+  "text_user_records": 1513,
+  "exactly_once_shard_assignment": true,
+  "index_links_valid": true,
+  "temporary_chat_copies_removed": true
+}

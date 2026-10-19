@@ -1,0 +1,15 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-buddy/memory/buddy-server-runbook.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-kimi-k3-kda/memory/kda-tpu-master-report.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/memory/MEMORY.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-gpu-mpk/a349f4dd-72fd-4b8d-af26-94860a64042d.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-jax/e03018a5-a233-4513-98f7-50292c50abab.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-mxu-sweep/c9ee6696-2a91-40a3-bb70-411c0ef0aa80.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude/767b9939-e1ea-478a-8123-780a1a2600a0.jsonl"
+  ],
+  "bytes": 3957089,
+  "reviewer": "reviewer-20"
+}

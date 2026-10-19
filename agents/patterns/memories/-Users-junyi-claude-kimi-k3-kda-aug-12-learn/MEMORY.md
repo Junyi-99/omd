@@ -1,0 +1,3 @@
+- [Neumann 仅限有界 gate](kda-neumann-bounded-gate-only.md) — 无界 softplus 数值不稳定，safe_gate 捆绑是刻意的验证边界，勿解耦
+- [备用机 deepseek-v4-data](fallback-vm-deepseek-v4-data.md) — ssh junyi@34.187.66.199，spot 挂时临时用
+- [XProf custom-call 插桩](xprof-custom-call-tracing.md) — LIBTPU_INIT_ARGS 开关看 pallas 内部 VPU/MXU

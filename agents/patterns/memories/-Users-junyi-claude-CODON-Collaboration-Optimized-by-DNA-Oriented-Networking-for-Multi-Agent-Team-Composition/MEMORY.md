@@ -1,0 +1,3 @@
+- [User Profile](user_profile.md) — Junyi Hou, NUS, multi-agent LLM research
+- [Submission Plan](project_submission_plan.md) — EMNLP 2026 primary, KDD 2027 fallback
+- [Sync After Experiment](feedback_sync_after_experiment.md) — 跑完实验立即 rsync xtrah200:codon/{results,logs}/ 回本地

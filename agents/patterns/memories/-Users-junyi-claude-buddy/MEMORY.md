@@ -1,0 +1,1 @@
+- [Buddy server runbook](buddy-server-runbook.md) — 受控 CLI = server/buddy_server.py, nohup in background (pid file in ~/Library/Logs); xcodebuild needs DEVELOPER_DIR to Xcode-beta 2; no Simulator GUI; avoid parallel testing clones

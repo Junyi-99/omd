@@ -1,0 +1,3 @@
+- [perf-takehome uncommitted kernel](perf-takehome-uncommitted-kernel.md) — optimized kernel is dirty working tree; `git checkout` wipes it to baseline
+- [perf-takehome fast proxy](perf-takehome-fast-proxy.md) — len(instrs) via normal import = exact fast cycle proxy; importlib copies lie
+- [perf-takehome floor](perf-takehome-floor.md) — 1092/135x converged; steady state LOAD-bound (2048-gather wall, 900 cyc pegged); ~68 latency ramp/drain; L4-mux (scratch-dead) & const→flow both dead

@@ -1,0 +1,17 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-gpu-mpk/memory/MEMORY.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-mamba-tpu/memory/feedback_dont_change_user_titles.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-xtra-server-dashboard/memory/MEMORY.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi--oh-my-dotfiles/d63dd842-1c2e-471f-a4bb-878dd774f3b2.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-agent-container/9c157fd4-45bc-42b8-99d6-e9578fbb10fa.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deciax/03a1ee51-f96b-419f-a696-7cb4ea5cdcb4.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-mxu-sweep/be9f5235-898c-4505-8bce-0cd1ef66b99c.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi--oh-my-dotfiles/dbe5c2f0-0308-4169-b295-17344417a75c.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-ici-bench/374aa24a-0500-472f-a361-56d095869fb4.jsonl"
+  ],
+  "bytes": 3887008,
+  "reviewer": "reviewer-32"
+}

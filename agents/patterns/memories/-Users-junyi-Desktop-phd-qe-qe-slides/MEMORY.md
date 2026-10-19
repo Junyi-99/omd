@@ -1,0 +1,1 @@
+- [Write scripts to files](feedback_scripts_over_inline.md) — User prefers Python scripts saved to files for review, not run inline

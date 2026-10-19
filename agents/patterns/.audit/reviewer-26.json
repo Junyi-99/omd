@@ -1,0 +1,17 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deck/memory/MEMORY.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-kimi-k3-kda/memory/xprof-named-scope-pallas.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/memory/nemotron-tpu-mamba2.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-opensource-dashboard/438ad9c1-eb39-4f4f-8e23-44fe2d1af488.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-opensource-dashboard/0f297b36-b25e-4683-99eb-026cec684234.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-sept15/d5fb44fa-cdb3-4a5e-b593-627c63e2dbe5.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude/09776d50-d8cc-4481-b95e-85080628ef83.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude/ab570e53-19ad-48ad-859a-7bd720dfa50e.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi--oh-my-dotfiles/2fc627eb-b06b-410b-8b41-1804576df142.jsonl"
+  ],
+  "bytes": 3892868,
+  "reviewer": "reviewer-26"
+}

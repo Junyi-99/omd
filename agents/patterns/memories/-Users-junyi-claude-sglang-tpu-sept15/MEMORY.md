@@ -1,0 +1,2 @@
+- [GCP B200 spot provisioning](gcp-b200-spot-provisioning.md) — Medusa Weihao 项目只有 spot B200 配额，没有 B300；镜像/可用区/停机坑位
+- [GCP B200 建机命令](gcp-b200-create-command.md) — 实测可用的 a4-highgpu-8g spot 建机与停机命令

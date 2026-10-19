@@ -1,0 +1,1 @@
+- [Wait for all jobs before deploying audio-transcribe](audio-transcribe-deploy-wait-for-jobs.md) — check live jobs table is idle, not just "not uploading"

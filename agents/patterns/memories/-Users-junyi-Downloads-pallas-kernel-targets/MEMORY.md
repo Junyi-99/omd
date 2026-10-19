@@ -1,0 +1,1 @@
+- [EPMoE notation](epmoe-notation.md) — fixed T/E/K/H/F symbol set for all MoE kernel discussion

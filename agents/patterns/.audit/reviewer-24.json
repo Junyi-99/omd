@@ -1,0 +1,16 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deciax/memory/laya-bench-project.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-kimi-k3-kda/memory/tpu-spot-sgljax-env-cache.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/memory/ici-v6e-measured-constants.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-jax/2f92f0d6-1c91-4c6d-be19-6471a4a25a6b.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/9a435ff1-bcf3-4a9d-97ec-dc0eb8457bc5.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-jax/39c06df5-231b-429d-9aff-23c139933cd1.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi/8e0b7008-a3b5-4d06-96fe-bff7e4590c59.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-laya/cc1977be-3234-4acc-9f0c-90137aec1675.jsonl"
+  ],
+  "bytes": 3892267,
+  "reviewer": "reviewer-24"
+}

@@ -1,0 +1,1 @@
+- [Writing style preferences](feedback_writing_style.md) — no em dashes, no parentheses, no internet slang in prose

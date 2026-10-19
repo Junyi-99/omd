@@ -1,0 +1,13 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi--oh-my-dotfiles/memory/MEMORY.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-gpu-mpk/memory/shared-gpu-benchmark-hygiene.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-mamba-tpu/memory/feedback_prefill_terminology.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-xtra-server-dashboard/memory/audio-transcribe-deploy-wait-for-jobs.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-architecture/d88da7fc-99bc-415f-945c-438a4a6ecb51.jsonl"
+  ],
+  "bytes": 44932846,
+  "reviewer": "reviewer-01"
+}

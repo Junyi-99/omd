@@ -1,0 +1,1 @@
+- [用户给需求的方式与 Wind 导出附件](user-spec-style-wind-exports.md) — 编号提示词 + SQL + CSV 附件；附件是格式权威样本，先核对再写

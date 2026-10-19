@@ -1,0 +1,16 @@
+{
+  "memory": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-deciax/memory/pr-body-style.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-kimi-k3-kda/memory/tpu-spot-ssh-host-block.md",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-spot/memory/lab-gpu-machines.md"
+  ],
+  "logs": [
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-tpu-mxu-sweep/6bdc8a1a-301f-4d3d-9bb6-2bdb1171d0b7.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-icpp2026-github-io/e7aefb0f-4e42-4373-bf90-fb4cfb1a38c4.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-sglang-tpu-sept15/0ed432cf-36cf-4184-a9a5-04e157d887e2.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi-claude-chagee/36c5016c-b86d-4537-9ed1-ecb888373118.jsonl",
+    "/Users/junyi/.claude/projects/-Users-junyi/6302853c-8676-49ac-ba87-1846c0091ad6.jsonl"
+  ],
+  "bytes": 3928282,
+  "reviewer": "reviewer-25"
+}

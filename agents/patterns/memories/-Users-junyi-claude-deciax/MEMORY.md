@@ -1,0 +1,4 @@
+- [laya-bench project](laya-bench-project.md) — repo, 5 NUS GPU hosts, setup quirks (cu126, UV timeout, g++, tilelang auto-backend)
+- [laya-bench findings](laya-bench-findings.md) — eager vs TileLang vs compile CUDA-graph latency results, 2026-10-12
+- [PR body style](pr-body-style.md) — short PR bodies with a mermaid diagram; never add the Claude session link to PRs or commits
+- [Code block blank lines](code-block-blank-lines.md) — separate logical blocks in function bodies with blank lines; user reads block by block
