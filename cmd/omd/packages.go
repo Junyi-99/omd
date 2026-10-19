@@ -199,7 +199,7 @@ command -v pyenv >/dev/null && eval "$(pyenv init - zsh)"
 			Installers: map[string]Installer{
 				"all": {
 					// PROFILE=/dev/null: the Env snippet below loads nvm, not ~/.zshrc edits.
-					Commands: []string{nvmLoad + `curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | PROFILE=/dev/null bash && . "$NVM_DIR/nvm.sh" && nvm install 24`},
+					Commands: []string{nvmLoad + `mkdir -p "$NVM_DIR" && curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | PROFILE=/dev/null bash && . "$NVM_DIR/nvm.sh" && nvm install 24`},
 					Requires: []string{"curl", "git"},
 				},
 			},
