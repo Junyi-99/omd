@@ -6,6 +6,8 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/charmbracelet/x/term"
 )
 
 func (m *manager) update(force bool) error {
@@ -43,13 +45,6 @@ func (m *manager) updateWithOptions(force, quiet bool) error {
 	if err != nil {
 		return err
 	}
-	dirty, err := git("status", "--porcelain")
-	if err != nil {
-		return err
-	}
-	if dirty != "" && !force {
-		return fmt.Errorf("uncommitted changes; commit or stash before updating:\n%s", dirty)
-	}
 	remote, err := git("config", "--get", "branch."+branch+".remote")
 	if err != nil {
 		return err
@@ -65,7 +60,29 @@ func (m *manager) updateWithOptions(force, quiet bool) error {
 		return err
 	}
 	if ahead != "0" && !force {
-		return fmt.Errorf("%s local commits are not on %s; push them before updating", ahead, upstream)
+		refuse := fmt.Errorf("%s local commits are not on %s; push them before updating", ahead, upstream)
+		if quiet || !term.IsTerminal(os.Stdin.Fd()) {
+			return refuse
+		}
+		behind, err := git("rev-list", "--count", "HEAD.."+upstream)
+		if err != nil {
+			return err
+		}
+		if behind != "0" {
+			fmt.Printf("Diverged from %s; merging (no rebase)...\n", upstream)
+			if _, err := git("merge", "--no-rebase", "--no-edit", upstream); err != nil {
+				return err
+			}
+		}
+		fmt.Printf("Local commits are not on %s. Push now? [y/N] ", upstream)
+		var answer string
+		fmt.Scanln(&answer)
+		if !strings.EqualFold(strings.TrimSpace(answer), "y") {
+			return refuse
+		}
+		if _, err := git("push"); err != nil {
+			return err
+		}
 	}
 	if force {
 		if !quiet {

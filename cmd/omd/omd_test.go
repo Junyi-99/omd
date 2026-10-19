@@ -235,7 +235,7 @@ func TestTUIResizeNavigationAndSave(t *testing.T) {
 	}
 }
 
-func TestUpdateRefusesDirtyTree(t *testing.T) {
+func TestUpdateKeepsUncommittedWork(t *testing.T) {
 	m := testManager(t)
 	if err := os.MkdirAll(m.root, 0755); err != nil {
 		t.Fatal(err)
@@ -255,7 +255,7 @@ func TestUpdateRefusesDirtyTree(t *testing.T) {
 	if err := os.WriteFile(path, []byte("keep me"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	if err := m.update(false); err == nil || !strings.Contains(err.Error(), "uncommitted") {
+	if err := m.update(false); err != nil {
 		t.Fatalf("update error = %v", err)
 	}
 	if _, err := os.Stat(path); err != nil {

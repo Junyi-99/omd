@@ -134,11 +134,11 @@ Installers keep their interactive terminal prompts and log to
 `cache/omd/install.log`. Failures return a nonzero status, including in quiet
 mode. On macOS, selected Homebrew is installed first; missing prerequisites are reported
 explicitly. Scheduled updates quietly fast-forward the oh-my-dotfiles repository.
-They refuse uncommitted changes and unpushed commits; use `omd install` to install
+They refuse unpushed commits and leave uncommitted changes alone (git aborts only if they collide with incoming files); use `omd install` to install
 enabled tools.
 The default frequency is weekly; change it with `u` in the TUI and save with `s`.
 
-`omd update` refuses uncommitted changes and unpushed commits. Use `--force`
+`omd update` refuses unpushed commits; uncommitted changes are kept unless they collide with incoming files. Use `--force`
 only to deliberately discard tracked local changes and local commits.
 
 ### Development

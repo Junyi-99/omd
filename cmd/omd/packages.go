@@ -15,9 +15,11 @@ type Package struct {
 	Category    string
 	Presets     []string
 	// Platforms limits the package to these GOOS values; empty means all.
-	Platforms  []string
-	Check      string
-	Env        string
+	Platforms []string
+	Check     string
+	Env       string
+	// Needs lists package IDs that install with this one.
+	Needs      []string
 	Installers map[string]Installer
 }
 
@@ -27,6 +29,15 @@ type Installer struct {
 	Commands []string
 	Requires []string
 	Release  *Release
+}
+
+// nvmLoad makes nvm's node and npm visible; omd's own PATH knows nothing of nvm.
+const nvmLoad = `[ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh"; `
+
+// npmInstaller installs a global npm package, failing clearly without Node.js.
+func npmInstaller(pkg string) Installer {
+	return Installer{Commands: []string{nvmLoad +
+		`command -v npm >/dev/null || { echo "npm not found: install Node.js (nvm) first" >&2; exit 1; }; npm install -g ` + pkg}}
 }
 
 func brewInstaller(formula string) Installer {
@@ -177,6 +188,26 @@ command -v pyenv >/dev/null && eval "$(pyenv init - zsh)"
 `,
 		},
 		{
+			ID:          "nodejs",
+			Name:        "Node.js (nvm)",
+			Description: "Node.js 24 LTS managed by nvm; required by the CLI agents",
+			Tab:         "Basics",
+			Category:    "Package managers",
+			Presets:     agentPresets,
+			Check:       `. "$HOME/.nvm/nvm.sh" && nvm which 24`,
+			Installers: map[string]Installer{
+				"all": {
+					// PROFILE=/dev/null: the Env snippet below loads nvm, not ~/.zshrc edits.
+					Commands: []string{`curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.8/install.sh | PROFILE=/dev/null bash && . "$HOME/.nvm/nvm.sh" && nvm install 24`},
+					Requires: []string{"curl", "git"},
+				},
+			},
+			Env: `export NVM_DIR="$HOME/.nvm"
+[[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+[[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+`,
+		},
+		{
 			ID:          "neovim",
 			Name:        "Neovim",
 			Description: "Terminal editor; selection also aliases vim to nvim",
@@ -311,12 +342,10 @@ fi
 			Tab:         "CLI Agents",
 			Category:    "Agents",
 			Presets:     agentPresets,
-			Check:       "command -v claude",
+			Check:       nvmLoad + "command -v claude",
+			Needs:       []string{"nodejs"},
 			Installers: map[string]Installer{
-				"all": {
-					Commands: []string{"npm install -g @anthropic-ai/claude-code"},
-					Requires: []string{"npm"},
-				},
+				"all": npmInstaller("@anthropic-ai/claude-code"),
 			},
 		},
 		{
@@ -326,12 +355,10 @@ fi
 			Tab:         "CLI Agents",
 			Category:    "Agents",
 			Presets:     agentPresets,
-			Check:       "command -v codex",
+			Check:       nvmLoad + "command -v codex",
+			Needs:       []string{"nodejs"},
 			Installers: map[string]Installer{
-				"all": {
-					Commands: []string{"npm install -g @openai/codex"},
-					Requires: []string{"npm"},
-				},
+				"all": npmInstaller("@openai/codex"),
 			},
 		},
 		{

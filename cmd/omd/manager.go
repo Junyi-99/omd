@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -154,6 +155,19 @@ func configBackupPath(path string) (string, error) {
 	}
 }
 
+// withNeeds returns selected plus the prerequisites of every selected package.
+func (m *manager) withNeeds(selected map[string]bool) map[string]bool {
+	all := maps.Clone(selected)
+	for _, p := range m.packages {
+		if selected[p.ID] {
+			for _, id := range p.Needs {
+				all[id] = true
+			}
+		}
+	}
+	return all
+}
+
 func (m *manager) install(selected map[string]bool, quiet bool, out io.Writer) error {
 	if m.platform != "darwin" && m.platform != "linux" {
 		return fmt.Errorf("unsupported platform: %s", m.platform)
@@ -173,18 +187,21 @@ func (m *manager) install(selected map[string]bool, quiet bool, out io.Writer) e
 	if !quiet {
 		output = io.MultiWriter(out, log)
 	}
+	selected = m.withNeeds(selected)
 	ordered := slices.Clone(m.packages)
+	// Package managers first: homebrew, then nodejs (the CLI agents need npm).
+	rank := func(p Package) int {
+		return slices.Index([]string{"homebrew", "nodejs"}, p.ID)
+	}
 	slices.SortStableFunc(ordered, func(a, b Package) int {
-		if a.ID == b.ID {
-			return 0
+		ra, rb := rank(a), rank(b)
+		if ra < 0 {
+			ra = 99
 		}
-		if a.ID == "homebrew" {
-			return -1
+		if rb < 0 {
+			rb = 99
 		}
-		if b.ID == "homebrew" {
-			return 1
-		}
-		return 0
+		return ra - rb
 	})
 	var failures []error
 	installed, upgraded, existing := 0, 0, 0
