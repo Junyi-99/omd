@@ -148,7 +148,6 @@ explicit errors, standard formatting, and small functions with concrete types.
 
 ```sh
 go fmt ./cmd/omd
-go test -race ./cmd/omd
 go vet ./cmd/omd
 go build -o cache/omd/omd ./cmd/omd
 ```
