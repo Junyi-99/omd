@@ -2,16 +2,19 @@
 # 左侧竖向侧边栏：在每个窗口最左边开一个窄 pane，竖着列出所有 session 及其窗口，替代底部状态栏
 #
 # 用法：
-#   sidebar.sh            开/关侧边栏（全局生效；开启时隐藏底部状态栏）
-#   sidebar.sh <width>    以指定宽度开启；已开启时调整宽度
-# 内部（由 tmux.conf 的 hook / 鼠标绑定调用）：
-#   hook <window_id>      若已开启，给该窗口补上侧边栏并刷新
-#   refresh               唤醒所有侧边栏立即重绘
-#   fix-width [window_id] 把侧边栏宽度拉回 @sidebar_width（不给窗口则处理全部）
-#   adopt-width <window_id> 鼠标拖完边框后，以该窗口侧边栏的新宽度作为全局宽度
-#   click <y> <client>
+#   sidebar.sh                  开/关侧边栏（全局生效；开启时隐藏底部状态栏）
+#   sidebar.sh <width>          以指定宽度开启；已开启时调整宽度
+#
+# 内部（由 tmux.conf 的 hook / 鼠标绑定，以及本脚本弹出的菜单调用）：
+#   hook <window_id>            若已开启，给该窗口补上侧边栏并刷新
+#   refresh                     唤醒所有侧边栏立即重绘
+#   fix-width [window_id]       把侧边栏宽度拉回 @sidebar_width（不给窗口则处理全部）
+#   adopt-width <window_id>     鼠标拖完边框后，以该窗口侧边栏的新宽度作为全局宽度
+#   click <x> <y> <client>      左键：最后一行的“≡ menu”按钮弹出 Sidebar 菜单；session / 主机行点最左 3 列折叠，其余行见 row_at
+#   collapse <key>              折叠/展开一个分组（key = session id 或主机名），菜单调用
 #   menu <mouse_x> <mouse_y> <pane_left> <pane_top> <client>   右键菜单
-#   render                侧边栏 pane 里运行的绘制循环
+#   new-item <client> window|session   新建窗口/会话的命名弹窗（菜单调用）
+#   render                      侧边栏 pane 里运行的绘制循环
 #   poll-loop / poll-host <host>                远程主机轮询（见“远程主机”）
 #   radd/rremove <host>, rshell <host> <client>, rnew <host> <client> <name>,
 #   rattach <host> <hex 名字> <client>, rkill <host> <hex 名字>   远程会话操作（菜单调用）
@@ -25,6 +28,8 @@ CACHE_DIR="/tmp/tmux-sidebar-$UID"          # 远程轮询结果、轮询进程�
 POLL_INTERVAL=15
 
 export LC_CTYPE="${LC_CTYPE:-en_US.UTF-8}"
+
+# --- 开关与宽度 ---
 
 enabled() { [ "$(tmux show -gqv @sidebar_enabled)" = 1 ]; }
 
@@ -100,10 +105,17 @@ disable() {
 
 remote_hosts() { [ -f "$REMOTES_FILE" ] && sed -e 's/#.*//' -e 's/[[:space:]]//g' "$REMOTES_FILE" | grep -v '^$'; }
 
-# BatchMode：不弹密码/确认提示，连不上就算 down；复用连接让每次轮询很便宜
-ssh_poll() {
-  ssh -o BatchMode=yes -o ConnectTimeout=4 -o ControlMaster=auto \
-    -o ControlPath="$CACHE_DIR/cm-%C" -o ControlPersist=120 "$@"
+# 轮询和点开的交互 ssh 共用一条复用连接：attach 时不用再握手/认证，几乎瞬间进入
+SSH_CM=(-o ControlMaster=auto -o ControlPath="$CACHE_DIR/cm-%C" -o ControlPersist=120)
+
+# BatchMode：不弹密码/确认提示，连不上就算 down
+ssh_poll() { ssh -o BatchMode=yes -o ConnectTimeout=4 "${SSH_CM[@]}" "$@"; }
+
+# 交互 ssh 的命令行（放进 new-window 里执行），参数已 shell 转义
+ssh_cmd() {
+  local a q=""
+  for a in "${SSH_CM[@]}"; do q+="$(printf %q "$a") "; done
+  printf 'ssh %s%s' "$q" "$*"
 }
 
 poll_host() {
@@ -181,10 +193,10 @@ open_remote_window() { # $1=client $2=标记 $3=shell 命令
 
 remote_attach() { # $1=host $2=session $3=client；session 不存在则新建
   open_remote_window "$3" "$1:$2" \
-    "ssh -t $(printf %q "$1") $(printf %q "tmux new-session -A -s $(printf %q "$2")")"
+    "$(ssh_cmd "-t $(printf %q "$1") $(printf %q "tmux new-session -A -s $(printf %q "$2")")")"
 }
 
-remote_shell() { open_remote_window "$2" "$1:" "ssh $(printf %q "$1")"; }
+remote_shell() { open_remote_window "$2" "$1:" "$(ssh_cmd "$(printf %q "$1")")"; }
 
 remote_kill() {
   ssh_poll "$1" "tmux kill-session -t $(printf %q "=$2")" > /dev/null 2>&1 < /dev/null
@@ -210,46 +222,90 @@ remote_remove() {
   refresh
 }
 
-# 远程区的行：sep / host SEP <host> SEP <状态> / rsession SEP <host> SEP <名字> SEP <窗口数> SEP <attached 数>
+# 远程区的行：sep / host SEP <host> SEP <状态> [SEP <折叠时隐藏的 session 数>] / rsession SEP <host> SEP <名字> SEP <窗口数> SEP <attached 数> SEP <本地已开窗口 1/0>
 remote_rows() {
   # 调用方常写 IFS="$SEP" read … < <(row_at …)，bash 3.2 下这个临时 IFS 会带进 <(…)，这里显式还原
-  local IFS=$' \t\n' hosts h f status s n a
+  local IFS=$' \t\n' hosts h f status s n a seen local_sessions rows cnt
   hosts="$(remote_hosts)"
   [ -n "$hosts" ] || return 0
   echo sep
   for h in $hosts; do
     f="$CACHE_DIR/remote-$h"
+    seen=""
+    # 本地已开着窗口（@remote=<host>:<session>）的远程 session，SEP 分隔
+    local_sessions="$(tmux list-windows -a -F '#{@remote}' |
+      awk -v h="$h:" 'index($0, h) == 1 && length($0) > length(h) { print substr($0, length(h) + 1) }' |
+      sort -u | tr '\n' "$SEP")"
+    rows="" cnt=0
     if [ ! -f "$f" ]; then
-      echo "host$SEP$h${SEP}pending"
-      continue
+      status=pending
+    else
+      {
+        read -r status
+        if [ "$status" = ok ]; then
+          while IFS='|' read -r s n a; do
+            [ -n "$s" ] || continue
+            if [[ "$SEP$local_sessions" == *"$SEP$s$SEP"* ]]; then
+              rows+="rsession$SEP$h$SEP$s$SEP$n$SEP$a${SEP}1"$'\n'
+            else
+              rows+="rsession$SEP$h$SEP$s$SEP$n$SEP$a${SEP}0"$'\n'
+            fi
+            seen+="$s$SEP"
+            cnt=$((cnt + 1))
+          done
+        fi
+      } < "$f"
     fi
-    {
-      read -r status
+    # 本地已开窗口、但轮询缓存里还没有的远程 session（刚新建 / 主机离线）：也列出来，窗口数未知
+    while IFS="$SEP" read -r -d "$SEP" s; do
+      [ -n "$s" ] && [[ "$SEP$seen" != *"$SEP$s$SEP"* ]] && { rows+="rsession$SEP$h$SEP$s$SEP?${SEP}0${SEP}1"$'\n'; cnt=$((cnt + 1)); }
+    done <<< "$local_sessions"
+    if is_collapsed "$h"; then
+      echo "host$SEP$h$SEP$status$SEP$cnt"
+    else
       echo "host$SEP$h$SEP$status"
-      if [ "$status" = ok ]; then
-        while IFS='|' read -r s n a; do
-          [ -n "$s" ] && echo "rsession$SEP$h$SEP$s$SEP$n$SEP$a"
-        done
-      fi
-    } < "$f"
+      printf '%s' "$rows"
+    fi
   done
+}
+
+# --- 行布局、点击、菜单 ---
+
+# 折叠的分组：@sidebar_collapsed 里空格分隔的 key（session id 如 $3，或远程主机名）。
+# 折叠的 session 不列窗口、折叠的主机不列远程 session，标题行右侧显示 ▸ 数量
+load_collapsed() { COLLAPSED=" $(tmux show -gqv @sidebar_collapsed) "; }
+is_collapsed() { [[ "$COLLAPSED" == *" $1 "* ]]; }
+
+toggle_collapse() {
+  load_collapsed
+  if is_collapsed "$1"; then
+    COLLAPSED="${COLLAPSED/ $1 / }"
+  else
+    COLLAPSED+="$1 "
+  fi
+  tmux set -g @sidebar_collapsed "$(echo $COLLAPSED)"
+  refresh
 }
 
 # 侧边栏的行布局：每个 session 一行标题，下面是它的窗口，然后一行“+ new window”，最后是远程区。
 # list-windows -a 按 session 再按窗口序号排列；draw 和 click 共用这个顺序
-#   $1 = 每个窗口额外输出的字段（format），输出：session_id SEP window_id SEP 额外字段
-windows_tree() { tmux list-windows -a -F "#{session_id}$SEP#{window_id}$SEP$1"; }
+#   $1 = 每个窗口额外输出的字段（format），输出：session_id SEP window_id SEP @remote SEP 额外字段
+# 带 @remote 的本地窗口（ssh 到远程 session 的那些）不列在本地区，只在远程区高亮对应的 session / 主机
+windows_tree() { tmux list-windows -a -F "#{session_id}$SEP#{window_id}$SEP#{@remote}$SEP$1"; }
 
 # pane 内第 $1 行对应什么（字段用 SEP 分隔）：session <sid> / window <sid> <wid> / new（“+ new window”行）/
 # sep / host <host> <状态> / rsession <host> <名字> …（远程区，见 remote_rows）/ 空
 row_at() {
   local y=0 sid wid prev="" row
-  while IFS="$SEP" read -r sid wid _; do
+  load_collapsed
+  while IFS="$SEP" read -r sid wid rem _; do
     if [ "$sid" != "$prev" ]; then
       [ "$y" -eq "$1" ] && { echo "session$SEP$sid"; return; }
       y=$((y + 1))
       prev="$sid"
     fi
+    [ -n "$rem" ] && continue
+    is_collapsed "$sid" && continue
     [ "$y" -eq "$1" ] && { echo "window$SEP$sid$SEP$wid"; return; }
     y=$((y + 1))
   done < <(windows_tree '')
@@ -267,22 +323,25 @@ new_item_popup() { # $1=client $2=window|session
   tmux display-popup -c "$1" -E -w 64 -h 14 -x C -y C -T " New $2 " -d "$dir" "'$CONFIG_DIR/new-window-prompt.sh' $2"
 }
 
-click() { # $1=pane 内行号 $2=client
-  local kind sid wid
-  IFS="$SEP" read -r kind sid wid _ < <(row_at "$1")
+click() { # $1,$2=pane 内坐标 $3=client
+  local kind sid wid p left top h
+  p="$(sidebar_of "$(tmux display -p -c "$3" '#{window_id}')")"
+  IFS="$SEP" read -r left top h < <(tmux display -p -t "$p" "#{pane_left}$SEP#{pane_top}$SEP#{pane_height}")
+  # 底栏最后一行是“≡ menu”按钮：弹出 Sidebar 菜单（menu 里行号超出列表即走默认分支）
+  if [ "$2" = "$((h - 1))" ]; then menu "$1" "$2" "$left" "$top" "$3"; return; fi
+  IFS="$SEP" read -r kind sid wid _ < <(row_at "$2")
   case "$kind" in
-    session) tmux switch-client -c "$2" -t "$sid" ;;
-    window) tmux switch-client -c "$2" -t "$sid:$wid" ;;
-    new) new_item_popup "$2" window ;;
-    host) remote_shell "$sid" "$2" ;;          # sid=host
-    rsession) remote_attach "$sid" "$wid" "$2" ;; # sid=host wid=session
+    session | host) [ "$1" -lt 3 ] && { toggle_collapse "$sid"; return; } ;;   # 点图标：折叠/展开
+  esac
+  case "$kind" in
+    session) tmux switch-client -c "$3" -t "$sid" ;;
+    window) tmux switch-client -c "$3" -t "$sid:$wid" ;;
+    new) new_item_popup "$3" window ;;
+    host) remote_shell "$sid" "$3" ;;          # sid=host
+    rsession) remote_attach "$sid" "$wid" "$3" ;; # sid=host wid=session
   esac
 }
 
-# 右键菜单：点 session 行 / 窗口行 / 其他位置，各给一套菜单。
-# 由脚本弹出（只有脚本知道每行对应什么），拿不到鼠标事件，所以用绝对坐标定位。
-# 菜单的 -t 必须是客户端当前看得见的 pane（否则 tmux 不显示菜单），
-# 所以每条命令都显式带 -t，名字也由脚本填入而不是用 #{} 格式
 # 名字放进菜单的格式字符串和双引号参数里：# 要写成 ##，" 和 \ 要转义
 fmt_text() {
   local t="${1//\\/\\\\}"
@@ -290,15 +349,21 @@ fmt_text() {
   printf '%s' "${t//#/##}"
 }
 
+# 右键菜单：点 session 行 / 窗口行 / 其他位置，各给一套菜单。
+# 由脚本弹出（只有脚本知道每行对应什么），拿不到鼠标事件，所以用绝对坐标定位。
+# 菜单的 -t 必须是客户端当前看得见的 pane（否则 tmux 不显示菜单），
+# 所以每条命令都显式带 -t，名字也由脚本填入而不是用 #{} 格式
 menu() { # $1,$2=鼠标在 pane 内的坐标 $3,$4=pane 左上角 $5=client
   local kind sid wid target name idx items=() prev="" next="" w found=0 width hex refresh="run-shell -b '$SELF refresh'"
   IFS="$SEP" read -r kind sid wid _ < <(row_at "$2")
+  load_collapsed
   target="$(tmux display -p -c "$5" '#{pane_id}')"
   case "$kind" in
     session)
       name="$(fmt_text "$(tmux display -p -t "$sid" '#{session_name}')")"
       items=(-T "#[bold] $name "
         "  ⇄ Switch to"   s "switch-client -c '$5' -t '$sid'"
+        "$(is_collapsed "$sid" && echo "  ▾ Expand" || echo "  ▸ Collapse")" c "run-shell -b '$SELF collapse $sid'"
         "  + New Window"  n "new-window -t '$sid:' -c \"#{pane_current_path}\""
         "  ✎ Rename"      r "command-prompt -I \"$name\" -p 'Rename session:' \"rename-session -t '$sid' -- '%%'\""
         ""
@@ -329,6 +394,7 @@ menu() { # $1,$2=鼠标在 pane 内的坐标 $3,$4=pane 左上角 $5=client
     host) # sid=host
       items=(-T "#[bold] $sid "
         "  ⌁ Open Shell"   o "run-shell -b '$SELF rshell $sid $5'"
+        "$(is_collapsed "$sid" && echo "  ▾ Expand" || echo "  ▸ Collapse")" c "run-shell -b '$SELF collapse $sid'"
         "  + New Session…" n "command-prompt -p 'New session on $sid:' \"run-shell -b '$SELF rnew $sid $5 %%'\""
         "  ↻ Refresh"      r "run-shell -b '$SELF poll-host $sid'"
         ""
@@ -416,21 +482,34 @@ draw() {
   esac
   [ -n "$H" ] && [ -n "$W" ] || return 2
   IFS="$SEP" read -r sync zoom host accent second dim tbg alert myremote < <(
-    tmux display -p -t "$TMUX_PANE" "#{synchronize-panes}$SEP#{window_zoomed_flag}$SEP$(fitw $((W - 1)) host_short)$SEP#{@popup_accent}$SEP#{@popup_dim}$SEP#{@theme_secondary}$SEP#{@theme_bg}$SEP#{@popup_alert}$SEP#{@remote}"
+    tmux display -p -t "$TMUX_PANE" "#{synchronize-panes}$SEP#{window_zoomed_flag}$SEP$(fitw $((W - 8)) host_short)$SEP#{@popup_accent}$SEP#{@popup_dim}$SEP#{@theme_secondary}$SEP#{@theme_bg}$SEP#{@popup_alert}$SEP#{@remote}"
   )
 
   # session 行：" " + 图标 + " " + 名字（当前 session 用打开的文件夹，其他用合上的，Nerd Font 图标）；窗口行："   " + 序号（2 列）+ " " + 名字，共 W 列；有提醒时名字让出 2 列给标记
-  local R=$'\e[0m' B=$'\e[1m' lines=() sid wid sname idx name name2 active bell prev=""
+  local R=$'\e[0m' B=$'\e[1m' lines=() sid wid sname sname2 idx name name2 active bell prev="" hidx cnt=0
   local dimc="${dim:-#7982a9}"
-  while IFS="$SEP" read -r sid wid sname idx name name2 active bell; do
+  load_collapsed
+  # 折叠的 session：标题行先占位，窗口数在下一个 session 开始 / 列表结束时填上
+  fill_collapsed() { [ -n "$hidx" ] && lines[$hidx]="${lines[$hidx]} ▸$(printf %2d "$cnt")$R"; hidx=""; cnt=0; }
+  while IFS="$SEP" read -r sid wid rem sname sname2 idx name name2 active bell; do
     if [ "$sid" != "$prev" ]; then
-      if [ "$sid" = "$mysid" ]; then
+      fill_collapsed
+      if is_collapsed "$sid"; then
+        hidx=${#lines[@]}
+        if [ "$sid" = "$mysid" ]; then
+          lines+=("$B$(fg "$accent")  $sname2")
+        else
+          lines+=("$B$(fg "$dimc")  $sname2")
+        fi
+      elif [ "$sid" = "$mysid" ]; then
         lines+=("$B$(fg "$accent")  $sname$R")
       else
         lines+=("$B$(fg "$dimc")  $sname$R")
       fi
       prev="$sid"
     fi
+    [ -n "$rem" ] && continue
+    is_collapsed "$sid" && { cnt=$((cnt + 1)); continue; }
     if [ "$wid" = "$mywid" ] && [ "$sid" = "$mysid" ]; then
       lines+=("$B$(bg "$second")$(fg "$tbg")   $idx $name$R")
     elif [ "$bell" = 1 ]; then
@@ -440,28 +519,35 @@ draw() {
     else
       lines+=("$(fg "$dimc")   $idx $name$R")
     fi
-  done < <(windows_tree "$(fitw $((W - 3)) session_name)$SEP#{p2:window_index}$SEP$(fitw $((W - 6)) window_name)$SEP$(fitw $((W - 8)) window_name)$SEP#{window_active}$SEP#{window_bell_flag}")
+  done < <(windows_tree "$(fitw $((W - 3)) session_name)$SEP$(fitw $((W - 7)) session_name)$SEP#{p2:window_index}$SEP$(fitw $((W - 6)) window_name)$SEP$(fitw $((W - 8)) window_name)$SEP#{window_active}$SEP#{window_bell_flag}")
+  fill_collapsed
   lines+=("$(fg "$second")$(fit " +  new window")$R")
 
   # 远程区：分隔线、主机行（ 󰒋 host + 状态）、session 行（名字 + 窗口数）
   # 远程 session 名可能含中文等双宽字符：先占位，最后用一次 tmux 调用按显示宽度截断/补齐
-  local rk rh rs rn ra rule rfmt="" ridx=() rpre=() rsuf=() rnames j
-  while IFS="$SEP" read -r rk rh rs rn ra; do
+  local rk rh rs rn ra rl rule rfmt="" ridx=() rpre=() rsuf=() rnames j
+  while IFS="$SEP" read -r rk rh rs rn ra rl; do
     case "$rk" in
       sep)
         rule=" ─ remote "
         while [ ${#rule} -lt $((W - 1)) ]; do rule+="─"; done
         lines+=("$(fg "$dimc")$rule $R") ;;
       host)
+        if [ -n "$rn" ]; then   # 折叠：rn = 隐藏的 session 数
+          lines+=("$B$([ "$myremote" = "$rh:" ] && bg "$second" && fg "$tbg" || fg "$accent")$(fitr " 󰒋 $rh" "▸$(printf %2d "$rn") ")$R")
+          continue
+        fi
         case "$rs" in
-          ok) lines+=("$B$(fg "$accent")$(fit " 󰒋 $rh")$R") ;;
+          ok) lines+=("$B$([ "$myremote" = "$rh:" ] && bg "$second" && fg "$tbg" || fg "$accent")$(fit " 󰒋 $rh")$R") ;;
           down) lines+=("$B$(fg "$dimc")$(fitr " 󰒋 $rh" " offline")$R") ;;
           nosrv) lines+=("$B$(fg "$dimc")$(fitr " 󰒋 $rh" " no tmux")$R") ;;
           *) lines+=("$B$(fg "$dimc")$(fitr " 󰒋 $rh" " …")$R") ;;
         esac ;;
       rsession)
         if [ "$myremote" = "$rh:$rs" ]; then
-          rpre+=("$B$(bg "$second")$(fg "$tbg")   ")
+          rpre+=("$B$(bg "$second")$(fg "$tbg") ● ")
+        elif [ "$rl" = 1 ]; then
+          rpre+=("$(fg "$second") ● ")
         else
           rpre+=("$(fg "$dimc")   ")
         fi
@@ -484,7 +570,7 @@ draw() {
   local footer=() i
   [ "$sync" = 1 ] && footer+=("$B$(bg "$alert")$(fg '#ffffff') SYNC $R")
   [ "$zoom" = 1 ] && footer+=("$B$(bg '#2ecc71')$(fg '#ffffff') ZOOM $R")
-  footer+=("$B$(fg "$accent") $host$R")
+  footer+=("$B$(fg "$accent") $host$R$(fg "$second")≡ menu $R")
   while [ $((${#lines[@]} + ${#footer[@]})) -gt "$H" ] && [ ${#lines[@]} -gt 0 ]; do unset "lines[${#lines[@]}-1]"; done
   while [ $((${#lines[@]} + ${#footer[@]})) -lt "$H" ]; do lines+=(""); done
   lines=("${lines[@]}" "${footer[@]}")
@@ -530,13 +616,16 @@ render() {
   done
 }
 
+# --- 入口 ---
+
 # 入口放进函数，并与 exit 写在同一行：bash 边执行边读脚本，
 # 运行中的进程（侧边栏常驻）在脚本被修改后不会接着读到改过的内容
 main() {
   case "$1" in
     render) render ;;
     refresh) refresh ;;
-    click) click "$2" "$3"; exit 0 ;;
+    click) click "$2" "$3" "$4"; exit 0 ;;
+    collapse) toggle_collapse "$2"; exit 0 ;;
     menu) menu "$2" "$3" "$4" "$5" "$6"; exit 0 ;;
     new-item) new_item_popup "$2" "$3"; exit 0 ;;
     fix-width)
