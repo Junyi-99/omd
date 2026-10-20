@@ -108,6 +108,10 @@ remote_hosts() { [ -f "$REMOTES_FILE" ] && sed -e 's/#.*//' -e 's/[[:space:]]//g
 # 轮询和点开的交互 ssh 共用一条复用连接：attach 时不用再握手/认证，几乎瞬间进入
 SSH_CM=(-o ControlMaster=auto -o ControlPath="$CACHE_DIR/cm-%C" -o ControlPersist=120)
 
+# ssh 远端执行命令用的是非登录 shell，macOS 上 Homebrew 的 PATH（~/.zprofile 里的 brew shellenv）不会加载，
+# 直接写 tmux 会 command not found（rc 127，被当成 nosrv）。所以远端命令统一补上常见安装路径再调 tmux。
+REMOTE_TMUX='PATH="$PATH:/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin" tmux'
+
 # BatchMode：不弹密码/确认提示，连不上就算 down
 ssh_poll() { ssh -o BatchMode=yes -o ConnectTimeout=4 "${SSH_CM[@]}" "$@"; }
 
@@ -122,7 +126,7 @@ poll_host() {
   local h="$1" f="$CACHE_DIR/remote-$1" rc
   mkdir -p "$CACHE_DIR"
   # 输出写文件而不是 $(...)：ControlPersist 的后台 master 会继承管道，命令替换会一直等到它退出
-  ssh_poll "$h" "tmux list-sessions -F '#{session_name}|#{session_windows}|#{session_attached}'" > "$f.out" 2>/dev/null < /dev/null
+  ssh_poll "$h" "$REMOTE_TMUX list-sessions -F '#{session_name}|#{session_windows}|#{session_attached}'" > "$f.out" 2>/dev/null < /dev/null
   rc=$?
   {
     case $rc in
@@ -193,7 +197,7 @@ open_remote_window() { # $1=client $2=标记 $3=shell 命令
 
 remote_attach() { # $1=host $2=session $3=client；session 不存在则新建
   open_remote_window "$3" "$1:$2" \
-    "$(ssh_cmd "-t $(printf %q "$1") $(printf %q "tmux new-session -A -s $(printf %q "$2")")")"
+    "$(ssh_cmd "-t $(printf %q "$1") $(printf %q "$REMOTE_TMUX new-session -A -s $(printf %q "$2")")")"
 }
 
 remote_shell() { open_remote_window "$2" "$1:" "$(ssh_cmd "$(printf %q "$1")")"; }
