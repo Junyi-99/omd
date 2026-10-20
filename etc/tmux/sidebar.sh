@@ -195,7 +195,17 @@ open_remote_window() { # $1=client $2=标记 $3=shell 命令
   tmux set -w -t "$w" @remote "$2"
 }
 
-remote_attach() { # $1=host $2=session $3=client；session 不存在则新建
+# 点侧边栏 / 菜单 Attach：只 attach 已有 session。侧边栏列表是轮询缓存，session 刚退出时还会列着，
+# 这里不能用 new-session -A，否则点到过期条目会在远端悄悄新建一个同名 session。
+# attach 失败（session 没了 / 连不上）就提示一下，并立刻重新轮询这台主机把过期条目清掉。
+remote_attach() { # $1=host $2=session $3=client
+  open_remote_window "$3" "$1:$2" \
+    "$(ssh_cmd "-t $(printf %q "$1") $(printf %q "$REMOTE_TMUX attach-session -t $(printf %q "$2")")") || \
+{ $(printf %q "$SELF") poll-host $(printf %q "$1") >/dev/null 2>&1; echo; echo '  session 不存在或连接已断开，2 秒后关闭'; sleep 2; }"
+}
+
+# 菜单 New Session：没有则新建，已有则 attach
+remote_new() { # $1=host $2=session $3=client
   open_remote_window "$3" "$1:$2" \
     "$(ssh_cmd "-t $(printf %q "$1") $(printf %q "$REMOTE_TMUX new-session -A -s $(printf %q "$2")")")"
 }
@@ -657,7 +667,7 @@ main() {
     radd) remote_add "$2"; exit 0 ;;
     rremove) remote_remove "$2"; exit 0 ;;
     rshell) remote_shell "$2" "$3"; exit 0 ;;
-    rnew) [ -n "$4" ] && remote_attach "$2" "$4" "$3"; exit 0 ;;
+    rnew) [ -n "$4" ] && remote_new "$2" "$4" "$3"; exit 0 ;;
     rattach) remote_attach "$2" "$(hexdec "$3")" "$4"; exit 0 ;;
     rkill) remote_kill "$2" "$(hexdec "$3")"; exit 0 ;;
     '')
