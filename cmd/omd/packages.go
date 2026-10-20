@@ -41,6 +41,45 @@ func npmInstaller(pkg string, flags ...string) Installer {
 		`command -v npm >/dev/null || { echo "npm not found: install Node.js (nvm) first" >&2; exit 1; }; npm install -g ` + strings.Join(append(flags, pkg), " ")}}
 }
 
+// tmuxVersion is the oldest tmux etc/tmux/tmux.conf fully works with (floating
+// panes). Homebrew ships it; a distribution package may be older.
+const tmuxVersion = "3.8"
+
+// tmuxCheck accepts tmux at tmuxVersion or newer. Without Homebrew (Linux hosts
+// using apt) any installed tmux is accepted, as nothing newer is offered.
+// `tmux -V` prints "tmux 3.5a" or "tmux next-3.9"; only major.minor are compared.
+var tmuxCheck = `command -v tmux >/dev/null && { ! command -v brew >/dev/null || tmux -V | awk -v min=` + tmuxVersion +
+	` '{ sub(/^[^0-9]*/, "", $2); split($2, v, "."); split(min, m, ".");` +
+	` exit !(v[1]+0 > m[1]+0 || (v[1]+0 == m[1]+0 && v[2]+0 >= m[2]+0)) }'; }`
+
+// tmuxBrew upgrades an older Homebrew tmux instead of reporting it as already installed.
+const tmuxBrew = `brew list --versions tmux >/dev/null 2>&1 && brew upgrade tmux || brew install tmux`
+
+// tmuxLinux prefers Homebrew when present, otherwise the distribution package,
+// whatever its version; tmux is never built from source.
+var tmuxLinux = `if command -v brew >/dev/null; then
+    ` + tmuxBrew + `
+    exit 0
+fi
+[ "$(id -u)" = 0 ] && sudo= || sudo=sudo
+if command -v apt-get >/dev/null; then
+    $sudo apt-get update && $sudo apt-get install -y tmux
+elif command -v dnf >/dev/null; then
+    $sudo dnf install -y tmux
+elif command -v yum >/dev/null; then
+    $sudo yum install -y tmux
+elif command -v apk >/dev/null; then
+    $sudo apk add tmux
+elif command -v pacman >/dev/null; then
+    $sudo pacman -S --noconfirm tmux
+elif command -v zypper >/dev/null; then
+    $sudo zypper install -y tmux
+else
+    echo "no Homebrew or known package manager found; install tmux manually" >&2
+    exit 1
+fi
+`
+
 func brewInstaller(formula string) Installer {
 	return Installer{
 		Commands: []string{"brew install " + formula},
@@ -227,6 +266,19 @@ command -v pyenv >/dev/null && eval "$(pyenv init - zsh)"
 			},
 			Env: `alias vim="nvim"
 `,
+		},
+		{
+			ID:          "tmux",
+			Name:        "tmux",
+			Description: "Terminal multiplexer, " + tmuxVersion + "+ via Homebrew; Linux without Homebrew uses apt and accepts an older version",
+			Tab:         "Basics",
+			Category:    "Tools",
+			Presets:     fullPreset,
+			Check:       tmuxCheck,
+			Installers: map[string]Installer{
+				"darwin": {Commands: []string{tmuxBrew}, Requires: []string{"brew"}},
+				"linux":  {Commands: []string{tmuxLinux}},
+			},
 		},
 		{
 			ID:          "fzf",

@@ -120,6 +120,11 @@ Select `Kitty config symlink` and press Enter to link `etc/kitty` to
 `.omd-backup-*` path first; an existing symlink to another location is preserved
 and reported as a conflict.
 Selecting Neovim also adds the `vim` → `nvim` shell alias when Neovim is installed.
+`tmux` installs with Homebrew (3.8 or newer, which `etc/tmux/tmux.conf` needs
+for floating panes); an older Homebrew tmux shows as `missing` and is upgraded.
+On Linux without Homebrew it comes from apt (or dnf, yum, apk, pacman, zypper)
+at whatever version the distribution ships, and that version is accepted; tmux
+is never built from source.
 
 On macOS, CLI tools install with Homebrew. Linux does not use Homebrew:
 fzf, zoxide, bat, duf, Starship, and Neovim are unpacked from their GitHub
