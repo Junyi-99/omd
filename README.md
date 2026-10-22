@@ -85,11 +85,11 @@ starts a background update check at the configured interval.
 
 ```sh
 omd                      # select packages in the TUI
-omd install              # install saved selections; upgrade outdated release tools
-omd outdated             # list tools omd installed from GitHub releases and their updates
+omd install              # install saved selections; upgrade outdated release tools and Node.js
+omd outdated             # list tools (GitHub releases, Node.js) and their available updates
 omd install --quiet      # log normal output; still report failures
 omd env                  # regenerate shell integration without installing
-omd update               # update the oh-my-dotfiles repository
+omd update               # update the oh-my-dotfiles repository, then list outdated tools
 omd auto-update          # run the scheduled update check
 omd color                # detect terminal color support
 omd version              # show the actual compiled versions

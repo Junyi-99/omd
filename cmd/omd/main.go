@@ -46,9 +46,9 @@ Usage:
   omd                     Open the package selection TUI
   omd install [--quiet]    Install saved selections, upgrade outdated release tools,
                           and regenerate shell env
-  omd outdated            List tools installed from GitHub releases with newer versions
+  omd outdated            List tools (GitHub releases, Node.js) with newer versions
   omd env                 Regenerate shell env without installing anything
-  omd update [--force]     Update the oh-my-dotfiles repository
+  omd update [--force]     Update the oh-my-dotfiles repository, then list outdated tools
   omd auto-update          Run the scheduled background update if due
   omd color                Detect terminal color support
   omd version             Show the compiled Go and UI dependency versions
@@ -114,7 +114,11 @@ Disabling a package stops its shell integration; it does not uninstall it.
 		if fs.NArg() != 0 {
 			return fmt.Errorf("unexpected arguments: %v", fs.Args())
 		}
-		return m.update(*force)
+		if err := m.update(*force); err != nil {
+			return err
+		}
+		fmt.Println("\nChecking installed tools...")
+		return m.outdated(os.Stdout)
 	case "auto-update":
 		if len(args) != 1 {
 			return fmt.Errorf("auto-update takes no arguments")

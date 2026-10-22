@@ -21,6 +21,15 @@ type Package struct {
 	// Needs lists package IDs that install with this one.
 	Needs      []string
 	Installers map[string]Installer
+	// Version, when set, lets omd compare an installed tool that is not an
+	// omd-managed release against its latest version and upgrade it.
+	Version *Version
+}
+
+// Version holds shell scripts: Installed and Latest print one version each,
+// Upgrade moves the tool to Latest.
+type Version struct {
+	Installed, Latest, Upgrade string
 }
 
 // Installer pairs shell commands with the prerequisites they need, or names
@@ -40,6 +49,10 @@ func npmInstaller(pkg string, flags ...string) Installer {
 	return Installer{Commands: []string{nvmLoad +
 		`command -v npm >/dev/null || { echo "npm not found: install Node.js (nvm) first" >&2; exit 1; }; npm install -g ` + strings.Join(append(flags, pkg), " ")}}
 }
+
+// claudeScriptsFlag passes --allow-scripts only to an npm that has the option;
+// older versions warn about the unknown config.
+const claudeScriptsFlag = `$(npm config ls -l 2>/dev/null | grep -q '^allow-scripts ' && echo --allow-scripts=@anthropic-ai/claude-code)`
 
 // tmuxVersion is the oldest tmux etc/tmux/tmux.conf fully works with (floating
 // panes). Homebrew ships it; a distribution package may be older.
@@ -235,6 +248,11 @@ command -v pyenv >/dev/null && eval "$(pyenv init - zsh)"
 			Category:    "Package managers",
 			Presets:     agentPresets,
 			Check:       nvmLoad + "nvm which 24",
+			Version: &Version{
+				Installed: nvmLoad + "nvm version 24",
+				Latest:    nvmLoad + "nvm version-remote 24",
+				Upgrade:   nvmLoad + `old=$(nvm version 24); nvm install "$(nvm version-remote 24)" --reinstall-packages-from="$old"`,
+			},
 			Installers: map[string]Installer{
 				"all": {
 					// PROFILE=/dev/null: the Env snippet below loads nvm, not ~/.zshrc edits.
@@ -397,7 +415,7 @@ fi
 			Check:       nvmLoad + "command -v claude",
 			Needs:       []string{"nodejs"},
 			Installers: map[string]Installer{
-				"all": npmInstaller("@anthropic-ai/claude-code", "--allow-scripts=@anthropic-ai/claude-code"),
+				"all": npmInstaller("@anthropic-ai/claude-code", claudeScriptsFlag),
 			},
 		},
 		{

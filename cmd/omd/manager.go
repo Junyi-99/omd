@@ -277,10 +277,34 @@ func (m *manager) installPackage(p Package, out io.Writer) error {
 	return nil
 }
 
+// checkTool returns the installed and latest versions of an omd-managed release
+// or of a package with a Version check; latest is empty for anything else.
+func (m *manager) checkTool(ctx context.Context, p Package) (installed, latest string, err error) {
+	if p.Version == nil {
+		return m.checkRelease(ctx, p)
+	}
+	if !m.check(p.Check) {
+		return "", "", nil
+	}
+	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	run := func(script string) (string, error) {
+		b, err := m.command(ctx, script).Output()
+		return strings.TrimSpace(string(b)), err
+	}
+	if installed, err = run(p.Version.Installed); err != nil {
+		return "", "", err
+	}
+	if latest, err = run(p.Version.Latest); err != nil {
+		return "", "", err
+	}
+	return installed, latest, nil
+}
+
 // upgradeRelease reinstalls an omd-managed release when a newer one exists.
 // Tools from other sources, such as apt, are left to their package manager.
 func (m *manager) upgradeRelease(p Package, out io.Writer) (bool, error) {
-	installed, latest, err := m.checkRelease(context.Background(), p)
+	installed, latest, err := m.checkTool(context.Background(), p)
 	if err != nil {
 		// Being offline must not turn an installed tool into a failure.
 		fmt.Fprintf(out, "! %s: could not check for updates: %v\n", p.Name, err)
@@ -290,7 +314,13 @@ func (m *manager) upgradeRelease(p Package, out io.Writer) (bool, error) {
 		return false, nil
 	}
 	fmt.Fprintf(out, "\n→ Upgrading %s %s → %s\n", p.Name, installed, latest)
-	if err := m.installRelease(p, m.releaseFor(p), latest, out); err != nil {
+	if p.Version != nil {
+		cmd := m.command(context.Background(), p.Version.Upgrade)
+		cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, out, out
+		if err := cmd.Run(); err != nil {
+			return false, err
+		}
+	} else if err := m.installRelease(p, m.releaseFor(p), latest, out); err != nil {
 		return false, err
 	}
 	fmt.Fprintf(out, "✓ %s upgraded\n", p.Name)
@@ -302,7 +332,7 @@ func (m *manager) outdated(out io.Writer) error {
 	var failures []error
 	found := false
 	for _, p := range m.packages {
-		installed, latest, err := m.checkRelease(context.Background(), p)
+		installed, latest, err := m.checkTool(context.Background(), p)
 		if err != nil {
 			failures = append(failures, fmt.Errorf("%s: %w", p.Name, err))
 			continue
@@ -318,7 +348,7 @@ func (m *manager) outdated(out io.Writer) error {
 		fmt.Fprintf(out, "%-12s %-10s %s\n", p.Name, installed, state)
 	}
 	if !found && len(failures) == 0 {
-		fmt.Fprintln(out, "No tools installed from GitHub releases by omd.")
+		fmt.Fprintln(out, "No omd-managed tools to check.")
 	}
 	return errors.Join(failures...)
 }
