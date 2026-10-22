@@ -260,11 +260,12 @@ command -v pyenv >/dev/null && eval "$(pyenv init - zsh)"
 					Requires: []string{"curl", "git"},
 				},
 			},
-			// --no-use skips nvm's startup "nvm use" (~2s); put the default
-			// version's bin on PATH directly instead. The glob is zsh-only.
+			// Sourcing nvm.sh costs ~0.3s even with --no-use, so load it on the
+			// first nvm call and put the default version's bin on PATH directly.
+			// The glob is zsh-only.
 			Env: `export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 if [[ -s "$NVM_DIR/nvm.sh" ]]; then
-    source "$NVM_DIR/nvm.sh" --no-use
+    nvm() { unset -f nvm; source "$NVM_DIR/nvm.sh" --no-use; nvm "$@"; }
     _nvm_default=$(<"$NVM_DIR/alias/default" 2>/dev/null)
     _nvm_nodes=("$NVM_DIR"/versions/node/v${_nvm_default#v}*(N-/))
     (( $#_nvm_nodes )) && path=("${${(@On)_nvm_nodes}[1]}/bin" $path)

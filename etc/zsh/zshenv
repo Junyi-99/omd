@@ -6,3 +6,7 @@ export USER_CONFIG_HOME="${HOME}/.oh-my-dotfiles"
 
 # check if .cargo/env exists and source it
 [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+# Debian/Ubuntu's /etc/zsh/zshrc runs a full compinit (with compaudit) on every
+# start; zshrc already runs a cached one, so skip the global one.
+skip_global_compinit=1
