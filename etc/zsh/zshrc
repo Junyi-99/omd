@@ -39,6 +39,10 @@ zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"     # 补全着色
 bindkey -e
 bindkey '^[[A' up-line-or-search      # Up arrow: history search
 bindkey '^[[B' down-line-or-search    # Down arrow: history search
+bindkey '^[[1;3D' backward-word       # Option/Alt+Left (kitty, xterm)
+bindkey '^[[1;3C' forward-word        # Option/Alt+Right
+bindkey '^[[1;5D' backward-word       # Ctrl+Left
+bindkey '^[[1;5C' forward-word        # Ctrl+Right
 
 # --- PATH ---
 # Keep the repo's bin first so its launchers win over system copies.
