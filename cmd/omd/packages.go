@@ -281,9 +281,10 @@ fi
 			Category:    "Tools",
 			Presets:     fullPreset,
 			Check:       "command -v nvim",
+			// nvim-treesitter (main) builds parsers with tree-sitter-cli.
+			Needs:       []string{"nodejs", "tree-sitter-cli"},
 			Installers: map[string]Installer{
-				// nvim-treesitter (main) builds parsers with tree-sitter-cli.
-				"darwin": brewInstaller("neovim tree-sitter-cli"),
+				"darwin": brewInstaller("neovim"),
 				"linux": {Release: &Release{
 					Repo:  "neovim/neovim",
 					Asset: "nvim-linux-{arch}.tar.gz",
@@ -293,6 +294,20 @@ fi
 			},
 			Env: `alias vim="nvim"
 `,
+		},
+		{
+			ID:          "tree-sitter-cli",
+			Name:        "tree-sitter CLI",
+			Description: "Builds Neovim's treesitter parsers; installed with npm",
+			Tab:         "Basics",
+			Category:    "Tools",
+			Presets:     fullPreset,
+			Check:       nvmLoad + "command -v tree-sitter",
+			Needs:       []string{"nodejs"},
+			Installers: map[string]Installer{
+				// The install script downloads the prebuilt binary.
+				"all": npmInstaller("tree-sitter-cli", "--allow-scripts=tree-sitter-cli"),
+			},
 		},
 		{
 			ID:          "tmux",

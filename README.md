@@ -119,7 +119,9 @@ Select `Kitty config symlink` and press Enter to link `etc/kitty` to
 `~/.config/kitty`. An existing config directory is moved to a timestamped
 `.omd-backup-*` path first; an existing symlink to another location is preserved
 and reported as a conflict.
-Selecting Neovim also adds the `vim` → `nvim` shell alias when Neovim is installed.
+Selecting Neovim also adds the `vim` → `nvim` shell alias when Neovim is installed,
+and pulls in Node.js and the tree-sitter CLI (from npm), which nvim-treesitter
+needs to build its parsers.
 `tmux` installs with Homebrew (3.8 or newer, which `etc/tmux/tmux.conf` needs
 for floating panes); an older Homebrew tmux shows as `missing` and is upgraded.
 On Linux without Homebrew it comes from apt (or dnf, yum, apk, pacman, zypper)
