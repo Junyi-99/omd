@@ -18,23 +18,29 @@ sha256() {
 }
 
 # Prebuilt binaries only match committed sources; local edits must be built.
+# Sets why to the reason when it returns 1.
 download() {
-    [ "$tree" != unknown ] || return 1
-    [ -z "$(git -C "$root" status --porcelain -- cmd/omd)" ] || return 1
-    case $(uname -s) in Linux) os=linux ;; Darwin) os=darwin ;; *) return 1 ;; esac
+    [ "$tree" != unknown ] || { why="not a git checkout"; return 1; }
+    [ -z "$(git -C "$root" status --porcelain -- cmd/omd)" ] || { why="uncommitted changes in cmd/omd"; return 1; }
+    case $(uname -s) in Linux) os=linux ;; Darwin) os=darwin ;; *) why="unsupported OS $(uname -s)"; return 1 ;; esac
     case $(uname -m) in
-        x86_64) arch=amd64 ;; aarch64 | arm64) arch=arm64 ;; armv6l | armv7l) arch=arm ;; *) return 1 ;;
+        x86_64) arch=amd64 ;; aarch64 | arm64) arch=arm64 ;; armv6l | armv7l) arch=arm ;;
+        *) why="unsupported CPU $(uname -m)"; return 1 ;;
     esac
     asset="omd-$os-$arch"
-    sums=$(curl -fsL --connect-timeout 10 --max-time 60 "$release/SHA256SUMS") || return 1
-    printf '%s\n' "$sums" | grep -q "^# tree $tree\$" || return 1
+    sums=$(curl -fsL --connect-timeout 10 --max-time 60 "$release/SHA256SUMS") ||
+        { why="cannot fetch $release/SHA256SUMS"; return 1; }
+    printf '%s\n' "$sums" | grep -q "^# tree $tree\$" ||
+        { why="the published release was built from a different source tree"; return 1; }
     want=$(printf '%s\n' "$sums" | awk -v f="$asset" '$2 == f { print $1 }')
-    [ -n "$want" ] || return 1
+    [ -n "$want" ] || { why="the release has no $asset"; return 1; }
     echo "omd: downloading prebuilt $asset" >&2
-    curl -fsL --connect-timeout 10 --max-time 300 -o "$bin.tmp" "$release/$asset" || return 1
+    curl -fsL --connect-timeout 10 --max-time 300 -o "$bin.tmp" "$release/$asset" ||
+        { why="download of $asset failed"; return 1; }
     if [ "$(sha256 "$bin.tmp")" != "$want" ]; then
         rm -f "$bin.tmp"
-        echo "omd: checksum mismatch for $asset; falling back to a local build" >&2
+        why="checksum mismatch for $asset"
+        echo "omd: $why; falling back to a local build" >&2
         return 1
     fi
     chmod +x "$bin.tmp" && mv "$bin.tmp" "$bin"
@@ -52,9 +58,11 @@ build() {
 
 if ! up_to_date; then
     mkdir -p "$(dirname -- "$bin")"
+    why=
     if ! download && ! build; then
-        echo "omd: no prebuilt binary for $(uname -s)/$(uname -m) at this revision and Go is not installed." >&2
-        echo "omd: install Go (https://go.dev/dl/) to build it from source." >&2
+        version="cmd/omd tree $(printf %.12s "$tree"), commit $(git -C "$root" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+        echo "omd: no prebuilt binary for $(uname -s)/$(uname -m) at this version ($version): $why." >&2
+        echo "omd: Go is not installed either; install it (https://go.dev/dl/) to build from source." >&2
         exit 1
     fi
     echo "$tree" >"$bin.tree"
