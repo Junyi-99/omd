@@ -39,35 +39,16 @@
 
 ## Get Started
 
-1. Clone the repository if it is not already present. [Go](https://go.dev/dl/) is only
-   needed when no prebuilt `omd` matches your platform and revision (see below).
+Paste this one line. It clones the repo, wires up the shell and SSH entry points
+(keeping existing configuration), opens the `omd` package selector, then starts zsh.
+[Go](https://go.dev/dl/) is only needed when no prebuilt `omd` matches your
+platform and revision (see below).
 
 ```sh
-[ -d ~/.oh-my-dotfiles ] || git clone https://github.com/Junyi-99/dotfiles.git ~/.oh-my-dotfiles
+[ -d ~/.oh-my-dotfiles ] || git clone https://github.com/Junyi-99/omd.git ~/.oh-my-dotfiles; for f in .zshenv:zshenv .zshrc:zshrc; do touch ~/${f%:*}; grep -qxF "source ~/.oh-my-dotfiles/etc/zsh/${f#*:}" ~/${f%:*} || echo "source ~/.oh-my-dotfiles/etc/zsh/${f#*:}" >> ~/${f%:*}; done; mkdir -p ~/.ssh; touch ~/.ssh/config; grep -qxF 'Include ~/.oh-my-dotfiles/etc/ssh/*.local' ~/.ssh/config || echo 'Include ~/.oh-my-dotfiles/etc/ssh/*.local' >> ~/.ssh/config; ~/.oh-my-dotfiles/bin/omd && exec zsh
 ```
 
-2. Add the shell entry points once, preserving existing configuration.
-
-```sh
-touch ~/.zshenv ~/.zshrc
-grep -qxF 'source ~/.oh-my-dotfiles/etc/zsh/zshenv' ~/.zshenv || echo 'source ~/.oh-my-dotfiles/etc/zsh/zshenv' >> ~/.zshenv
-grep -qxF 'source ~/.oh-my-dotfiles/etc/zsh/zshrc' ~/.zshrc || echo 'source ~/.oh-my-dotfiles/etc/zsh/zshrc' >> ~/.zshrc
-```
-
-3. Optionally add the local SSH configuration include.
-
-```sh
-mkdir -p ~/.ssh
-touch ~/.ssh/config
-grep -qxF 'Include ~/.oh-my-dotfiles/etc/ssh/*.local' ~/.ssh/config || echo 'Include ~/.oh-my-dotfiles/etc/ssh/*.local' >> ~/.ssh/config
-```
-
-4. Start a new shell and run `omd` to select packages.
-
-```sh
-exec zsh
-omd
-```
+Defaults are preselected for your OS on the first run; press Enter in the TUI to install.
 
 ## omd
 
@@ -91,7 +72,6 @@ omd install --quiet      # log normal output; still report failures
 omd env                  # regenerate shell integration without installing
 omd update               # update the oh-my-dotfiles repository, then list outdated tools
 omd auto-update          # run the scheduled update check
-omd color                # detect terminal color support
 omd version              # show the actual compiled versions
 ```
 
@@ -101,15 +81,14 @@ omd version              # show the actual compiled versions
 | Tab or 1/2 | Switch between Basics and CLI Agents |
 | Space / a | Select or deselect one package / the current group |
 | m / g / f | Apply minimal / agent / full preset |
+| d | Reset to the first-run default selection |
 | s | Save selections and regenerate shell integration |
 | Enter | Install selected tools and return to the shell with OMD environment loaded |
 | r | Refresh installed status |
 | u | Cycle auto-update frequency: off / daily / weekly / monthly |
 | q / Esc | Quit and discard unsaved selections |
 
-CLI Agents contains Claude Code and Codex CLI. Selections from the Python
-version remain compatible; retired Copilot, Gemini, Cursor, and Kimi entries
-are ignored and removed on the next save. Disabling a package removes its
+CLI Agents contains Claude Code and Codex CLI. Disabling a package removes its
 shell integration, not its installed files.
 Each package shows availability (`missing` / `installed`) and its selection
 state. `Selected` means Enter will install it if missing; packages with shell
@@ -122,14 +101,21 @@ and reported as a conflict.
 Selecting Neovim also adds the `vim` → `nvim` shell alias when Neovim is installed,
 and pulls in Node.js and the tree-sitter CLI (from npm), which nvim-treesitter
 needs to build its parsers.
-`tmux` installs with Homebrew (3.8 or newer, which `etc/tmux/tmux.conf` needs
-for floating panes); an older Homebrew tmux shows as `missing` and is upgraded.
-On Linux without Homebrew it comes from apt (or dnf, yum, apk, pacman, zypper)
-at whatever version the distribution ships, and that version is accepted; tmux
-is never built from source.
+`tmux` needs 3.8 or newer (`etc/tmux/tmux.conf` uses floating panes); an older
+one shows as `missing` and is upgraded. macOS and Linux with Homebrew use
+Homebrew. Otherwise Linux builds the latest GitHub release from source into
+`~/.local`, installing the compiler and libevent/ncurses headers with apt (or
+dnf, yum, apk, pacman, zypper).
+
+On the first run (no saved selection), omd preselects the default
+selection (packages marked `Default` in `packages.go`, independent of the m/g/f presets) for the
+current OS: on Linux zsh, the zsh plugins, Starship, Node.js, Neovim, the
+tree-sitter CLI, tmux, fzf, zoxide, bat, duf, uv, Claude Code and Codex CLI;
+on macOS the same plus Homebrew and the Kitty config symlink. Syncthing and
+Apptainer are never preselected.
 
 On macOS, CLI tools install with Homebrew. Linux does not use Homebrew:
-fzf, zoxide, bat, duf, Starship, and Neovim are unpacked from their GitHub
+fzf, zoxide, bat, duf, uv, Starship, and Neovim are unpacked from their GitHub
 releases into `dep/<package>` and linked into `bin/`. The archive matches the
 CPU omd was built for (x86_64, arm64, or 32-bit arm, e.g. Raspberry Pi), and
 the installed tag is recorded in `dep/<package>/.omd-version`. The TUI marks
@@ -139,7 +125,8 @@ manager are detected as installed and left to that package manager.
 
 Installers keep their interactive terminal prompts and log to
 `cache/omd/install.log`. Failures return a nonzero status, including in quiet
-mode. On macOS, selected Homebrew is installed first; missing prerequisites are reported
+mode. Packages install after their dependencies (for example Homebrew before the tools
+that need it, Node.js before the npm tools); missing prerequisites are reported
 explicitly. Scheduled updates quietly fast-forward the oh-my-dotfiles repository.
 They refuse unpushed commits and leave uncommitted changes alone (git aborts only if they collide with incoming files); use `omd install` to install
 enabled tools.

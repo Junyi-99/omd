@@ -5,7 +5,7 @@
 set -eu
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
 bin="$root/cache/omd/omd"
-release="https://github.com/Junyi-99/dotfiles/releases/download/omd"
+release="https://github.com/Junyi-99/omd/releases/download/omd"
 tree=$(git -C "$root" rev-parse HEAD:cmd/omd 2>/dev/null || echo unknown)
 
 up_to_date() {
