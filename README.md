@@ -101,11 +101,11 @@ and reported as a conflict.
 Selecting Neovim also adds the `vim` → `nvim` shell alias when Neovim is installed,
 and pulls in Node.js and the tree-sitter CLI (from npm), which nvim-treesitter
 needs to build its parsers.
-`tmux` needs 3.8 or newer (`etc/tmux/tmux.conf` uses floating panes); an older
-one shows as `missing` and is upgraded. macOS and Linux with Homebrew use
-Homebrew. Otherwise Linux builds the latest GitHub release from source into
-`~/.local`, installing the compiler and libevent/ncurses headers with apt (or
-dnf, yum, apk, pacman, zypper).
+`tmux` needs 3.7 or newer; an older one shows as `missing` and is upgraded. The
+floating pane binding (`prefix f`, `new-pane`) needs 3.8 and is skipped on
+older versions. macOS and Linux with Homebrew use Homebrew. Otherwise Linux
+downloads the latest prebuilt binary from `tmux/tmux-builds` into
+`~/.local/bin`, with no root, compiler or dependencies needed.
 
 On the first run (no saved selection), omd preselects the default
 selection (packages marked `Default` in `packages.go`, independent of the m/g/f presets) for the

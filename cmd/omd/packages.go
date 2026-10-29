@@ -100,9 +100,9 @@ func npmInstaller(pkg string, flags ...string) Installer {
 // older versions warn about the unknown config. It is expanded by npm_install.sh.
 const claudeScriptsFlag = `$(npm config ls -l 2>/dev/null | grep -q '^allow-scripts ' && echo --allow-scripts=@anthropic-ai/claude-code)`
 
-// tmuxVersion is the oldest tmux etc/tmux/tmux.conf fully works with (floating
-// panes). Homebrew and the GitHub release provide it.
-const tmuxVersion = "3.8"
+// tmuxVersion is the oldest tmux etc/tmux/tmux.conf loads on (3.8 adds floating
+// panes, which 3.7 reports as an error). Homebrew and the GitHub release provide it.
+const tmuxVersion = "3.7"
 
 // tmuxCheck accepts tmux at tmuxVersion or newer.
 var tmuxCheck = withEnv(tmuxCheckScript, "OMD_TMUX_MIN", tmuxVersion)
@@ -340,7 +340,7 @@ fi
 		{
 			ID:          "tmux",
 			Name:        "tmux",
-			Description: "Terminal multiplexer, " + tmuxVersion + "+; latest GitHub release built from source on Linux without Homebrew",
+			Description: "Terminal multiplexer, " + tmuxVersion + "+; prebuilt GitHub release on Linux without Homebrew",
 			Tab:         "Basics",
 			Category:    "Tools",
 			Presets:     fullPreset,
