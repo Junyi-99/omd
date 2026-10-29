@@ -539,8 +539,8 @@ draw() {
 
   # 远程区：分隔线、主机行（ 󰒋 host + 状态）、session 行（名字 + 窗口数）
   # 远程 session 名可能含中文等双宽字符：先占位，最后用一次 tmux 调用按显示宽度截断/补齐
-  local rk rh rs rn ra rl rule rfmt="" ridx=() rpre=() rsuf=() rnames j
-  while IFS="$SEP" read -r rk rh rs rn ra rl; do
+  local rk rh rs rn rl rule rfmt="" ridx=() rpre=() rsuf=() rnames j
+  while IFS="$SEP" read -r rk rh rs rn _ rl; do
     case "$rk" in
       sep)
         rule=" ─ remote "
