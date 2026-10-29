@@ -26,7 +26,8 @@ func run(args []string) error {
 	if len(args) == 0 {
 		selected, err := m.loadConfig()
 		if errors.Is(err, os.ErrNotExist) {
-			selected, err = make(map[string]bool), nil
+			// First run: preselect the full preset for this platform.
+			selected, err = m.defaultSelection(), nil
 		}
 		if err != nil {
 			return err
@@ -50,7 +51,6 @@ Usage:
   omd env                 Regenerate shell env without installing anything
   omd update [--force]     Update the oh-my-dotfiles repository, then list outdated tools
   omd auto-update          Run the scheduled background update if due
-  omd color                Detect terminal color support
   omd version             Show the compiled Go and UI dependency versions
 
 TUI: Space toggle · Tab switch · m/g/f presets · s save · Enter save + install
@@ -73,11 +73,6 @@ Disabling a package stops its shell integration; it does not uninstall it.
 			return fmt.Errorf("outdated takes no arguments")
 		}
 		return m.outdated(os.Stdout)
-	case "color":
-		if len(args) != 1 {
-			return fmt.Errorf("color takes no arguments")
-		}
-		return showColorSupport(os.Stdout)
 	case "install", "env":
 		fs := flag.NewFlagSet(args[0], flag.ContinueOnError)
 		quiet := fs.Bool("quiet", false, "hide successful install output; retain errors and install.log")
