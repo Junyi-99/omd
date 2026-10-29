@@ -71,7 +71,7 @@ func TestDefaultSelection(t *testing.T) {
 func TestEmbeddedScripts(t *testing.T) {
 	for name, s := range map[string]string{
 		"nvm_load": nvmScript, "nodejs_install": nodejsInstallScript, "npm_install": npmInstallScript,
-		"tmux_check": tmuxCheckScript, "tmux_brew": tmuxBrew, "tmux_linux": tmuxLinux,
+		"tmux_check": tmuxCheckScript, "tmux_brew": tmuxBrew,
 		"distro_install": distroInstallScript, "nvmLoad": nvmLoad,
 	} {
 		if strings.TrimSpace(s) == "" {

@@ -100,3 +100,13 @@ func (m *manager) defaultSelection() map[string]bool {
 	}
 	return selected
 }
+
+// selectedOrAll returns the saved selection, or nil (every package) before
+// the first save.
+func (m *manager) selectedOrAll() map[string]bool {
+	selected, err := m.loadConfig()
+	if err != nil {
+		return nil
+	}
+	return selected
+}

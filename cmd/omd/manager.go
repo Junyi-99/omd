@@ -413,6 +413,10 @@ func (v *Version) versions(ctx context.Context, m *manager, p Package) (installe
 	if installed, err = run(v.Installed); err != nil {
 		return "", "", err
 	}
+	if installed == "" {
+		// Present but not from this package manager, such as a native install.
+		return "", "", nil
+	}
 	if latest, err = run(v.Latest); err != nil {
 		return "", "", err
 	}
@@ -466,8 +470,9 @@ func (m *manager) upgradeTool(p Package, out io.Writer) (bool, error) {
 	return true, nil
 }
 
-// outdated lists every omd-managed release with its installed and latest version.
-func (m *manager) outdated(out io.Writer) error {
+// outdated lists the version of every enabled omd-managed tool, or of all of
+// them when selected is nil.
+func (m *manager) outdated(out io.Writer, selected map[string]bool) error {
 	var failures []error
 	found := false
 	type result struct {
@@ -477,6 +482,9 @@ func (m *manager) outdated(out io.Writer) error {
 	results := make([]result, len(m.packages))
 	var wg sync.WaitGroup
 	for i, p := range m.packages {
+		if selected != nil && !selected[p.ID] {
+			continue
+		}
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -486,6 +494,9 @@ func (m *manager) outdated(out io.Writer) error {
 	}
 	wg.Wait()
 	for i, p := range m.packages {
+		if selected != nil && !selected[p.ID] {
+			continue
+		}
 		installed, latest, err := results[i].installed, results[i].latest, results[i].err
 		if err != nil {
 			failures = append(failures, fmt.Errorf("%s: %w", p.Name, err))
@@ -499,7 +510,7 @@ func (m *manager) outdated(out io.Writer) error {
 		if latest != installed {
 			state = "→ " + latest + " (omd install upgrades selected tools)"
 		}
-		fmt.Fprintf(out, "%-12s %-10s %s\n", p.Name, installed, state)
+		fmt.Fprintf(out, "%-16s %-10s %s\n", p.Name, installed, state)
 	}
 	if !found && len(failures) == 0 {
 		fmt.Fprintln(out, "No omd-managed tools to check.")

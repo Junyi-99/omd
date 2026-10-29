@@ -103,9 +103,11 @@ and pulls in Node.js and the tree-sitter CLI (from npm), which nvim-treesitter
 needs to build its parsers.
 `tmux` needs 3.7 or newer; an older one shows as `missing` and is upgraded. The
 floating pane binding (`prefix f`, `new-pane`) needs 3.8 and is skipped on
-older versions. macOS and Linux with Homebrew use Homebrew. Otherwise Linux
-downloads the latest prebuilt binary from `tmux/tmux-builds` into
-`~/.local/bin`, with no root, compiler or dependencies needed.
+older versions. macOS uses Homebrew; Linux unpacks the latest prebuilt release from
+`tmux/tmux-builds` (no root, compiler or dependencies needed).
+`omd update` and `omd outdated` check the version of every enabled tool omd
+manages: GitHub releases, Node.js and the npm tools (tree-sitter CLI, Claude Code,
+Codex CLI). Tools from a system package manager or Homebrew are not checked.
 
 On the first run (no saved selection), omd preselects the default
 selection (packages marked `Default` in `packages.go`, independent of the m/g/f presets) for the
