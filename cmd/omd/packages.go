@@ -70,9 +70,6 @@ var tmuxCheckScript string
 //go:embed scripts/tmux_brew.sh
 var tmuxBrew string
 
-//go:embed scripts/tmux_linux.sh
-var tmuxLinux string
-
 //go:embed scripts/distro_install.sh
 var distroInstallScript string
 
@@ -94,6 +91,16 @@ func withEnv(script string, kv ...string) string {
 func npmInstaller(pkg string, flags ...string) Installer {
 	return Installer{Commands: []string{nvmLoad +
 		withEnv(npmInstallScript, "OMD_NPM_ARGS", strings.Join(append(flags, pkg), " "))}}
+}
+
+// npmVersion lets omd compare a global npm package with the registry and
+// reinstall it with the same flags.
+func npmVersion(pkg string, flags ...string) *Version {
+	return &Version{
+		Installed: nvmLoad + "npm ls -g --depth=0 --parseable --long " + shellQuote(pkg) + " | sed 's/.*@//'",
+		Latest:    nvmLoad + "npm view " + shellQuote(pkg) + " version",
+		Upgrade:   npmInstaller(pkg, flags...).Commands[0],
+	}
 }
 
 // claudeScriptsFlag passes --allow-scripts only to an npm that has the option;
@@ -332,6 +339,7 @@ fi
 			Default:     true,
 			Check:       nvmLoad + "command -v tree-sitter",
 			Needs:       []string{"nodejs"},
+			Version:     npmVersion("tree-sitter-cli", "--allow-scripts=tree-sitter-cli"),
 			Installers: map[string]Installer{
 				// The install script downloads the prebuilt binary.
 				"all": npmInstaller("tree-sitter-cli", "--allow-scripts=tree-sitter-cli"),
@@ -340,7 +348,7 @@ fi
 		{
 			ID:          "tmux",
 			Name:        "tmux",
-			Description: "Terminal multiplexer, " + tmuxVersion + "+; prebuilt GitHub release on Linux without Homebrew",
+			Description: "Terminal multiplexer, " + tmuxVersion + "+; prebuilt tmux-builds release on Linux",
 			Tab:         "Basics",
 			Category:    "Tools",
 			Presets:     fullPreset,
@@ -348,7 +356,12 @@ fi
 			Check:       tmuxCheck,
 			Installers: map[string]Installer{
 				"darwin": {Commands: []string{tmuxBrew}, Requires: []string{"brew"}},
-				"linux":  {Commands: []string{tmuxLinux}},
+				"linux": {Release: &Release{
+					Repo:  "tmux/tmux-builds",
+					Asset: "tmux-{version}-linux-{arch}.tar.gz",
+					Arch:  map[string]string{"amd64": "x86_64", "arm64": "arm64"},
+					Bins:  []string{"tmux"},
+				}},
 			},
 		},
 		{
@@ -496,6 +509,7 @@ fi
 			Default:     true,
 			Check:       nvmLoad + "command -v claude",
 			Needs:       []string{"nodejs"},
+			Version:     npmVersion("@anthropic-ai/claude-code", claudeScriptsFlag),
 			Installers: map[string]Installer{
 				"all": npmInstaller("@anthropic-ai/claude-code", claudeScriptsFlag),
 			},
@@ -510,6 +524,7 @@ fi
 			Default:     true,
 			Check:       nvmLoad + "command -v codex",
 			Needs:       []string{"nodejs"},
+			Version:     npmVersion("@openai/codex"),
 			Installers: map[string]Installer{
 				"all": npmInstaller("@openai/codex"),
 			},
