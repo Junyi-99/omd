@@ -65,3 +65,6 @@ Desktop.ini
 
 # Keep local overrides ignored even inside re-included directories.
 *.local
+
+# omd build artifact
+cmd/omd/omd
