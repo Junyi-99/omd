@@ -44,6 +44,14 @@ bindkey '^[[1;3C' forward-word        # Option/Alt+Right
 bindkey '^[[1;5D' backward-word       # Ctrl+Left
 bindkey '^[[1;5C' forward-word        # Ctrl+Right
 
+# Edit the current command line in $EDITOR (after compinit, which binds ^Xe to _expand_word)
+autoload -Uz edit-command-line
+zle -N edit-command-line
+bindkey '^X^E' edit-command-line      # Ctrl+X Ctrl+E
+bindkey '^Xe' edit-command-line       # Ctrl+X e
+export EDITOR=nvim
+export VISUAL=nvim
+
 # --- PATH ---
 # Keep the repo's bin first so its launchers win over system copies.
 typeset -U path
