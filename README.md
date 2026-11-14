@@ -154,6 +154,11 @@ The default frequency is weekly; change it with `u` in the TUI and save with `s`
 `omd update` refuses unpushed commits; uncommitted changes are kept unless they collide with incoming files. Use `--force`
 only to deliberately discard tracked local changes and local commits.
 
+The repo is public, so `omd` sets `core.hooksPath=.githooks` and its pre-commit hook refuses commits that stage
+local-only files (`hosts.yaml`, `*.local`) or add lines that look like secrets (vault blobs, private keys, API
+tokens, private IPs). Put private names such as internal hostnames in `.githooks/deny.local`, one regex per line;
+it is git-ignored, so copy it to each machine. Mark a false positive with `omd-allow-secret` on that line.
+
 ### Development
 
 The code follows [Effective Go](https://go.dev/doc/effective_go): named fields,

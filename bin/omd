@@ -8,6 +8,10 @@ bin="$root/cache/omd/omd"
 release="https://github.com/Junyi-99/omd/releases/download/omd"
 tree=$(git -C "$root" rev-parse HEAD:cmd/omd 2>/dev/null || echo unknown)
 
+# Enable the repo's leak check (.githooks/pre-commit) unless hooks are set up otherwise.
+[ -n "$(git -C "$root" config core.hooksPath 2>/dev/null)" ] ||
+    git -C "$root" config core.hooksPath .githooks 2>/dev/null || true
+
 up_to_date() {
     [ -x "$bin" ] && [ "$(cat "$bin.tree" 2>/dev/null)" = "$tree" ] &&
         [ -z "$(find "$root/cmd/omd" -type f -newer "$bin" -print -quit)" ]
