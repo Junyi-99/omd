@@ -4,6 +4,9 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -123,6 +126,10 @@ func (m *manager) installRelease(p Package, rel *Release, tag string, out io.Wri
 	}
 	defer os.RemoveAll(staging)
 
+	want, err := m.releaseDigest(ctx, rel, tag, asset)
+	if err != nil {
+		return err
+	}
 	link := m.github + "/" + rel.Repo + "/releases/download/" + url.PathEscape(tag) + "/" + url.PathEscape(asset)
 	fmt.Fprintf(out, "Downloading %s\n", link)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, link, nil)
@@ -137,8 +144,18 @@ func (m *manager) installRelease(p Package, rel *Release, tag string, out io.Wri
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("download %s: HTTP %s", asset, resp.Status)
 	}
-	if err := extractTarGz(resp.Body, staging); err != nil {
+	// Hash the bytes as they are unpacked; nothing is installed before the
+	// digest matches, so a corrupted or tampered archive is discarded.
+	hash := sha256.New()
+	body := io.TeeReader(resp.Body, hash)
+	if err := extractTarGz(body, staging); err != nil {
 		return fmt.Errorf("unpack %s: %w", asset, err)
+	}
+	if _, err := io.Copy(io.Discard, body); err != nil {
+		return fmt.Errorf("download %s: %w", asset, err)
+	}
+	if got := hex.EncodeToString(hash.Sum(nil)); got != want {
+		return fmt.Errorf("checksum mismatch for %s: got sha256 %s, GitHub records %s", asset, got, want)
 	}
 	unpacked, err := stripSingleDir(staging)
 	if err != nil {
@@ -178,6 +195,56 @@ func (m *manager) installRelease(p Package, rel *Release, tag string, out io.Wri
 	}
 	fmt.Fprintf(out, "Installed %s %s (%s)\n", p.Name, tag, asset)
 	return nil
+}
+
+// releaseDigest returns the hex SHA-256 that GitHub computed when the asset
+// was uploaded. A release without a recorded digest (assets uploaded before
+// GitHub began recording them) is refused rather than installed unverified.
+func (m *manager) releaseDigest(ctx context.Context, rel *Release, tag, asset string) (string, error) {
+	link := m.api + "/repos/" + rel.Repo + "/releases/tags/" + url.PathEscape(tag)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, link, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Accept", "application/vnd.github+json")
+	// Anonymous API calls are limited to 60 an hour; a token raises the limit.
+	for _, name := range []string{"GITHUB_TOKEN", "GH_TOKEN"} {
+		if token := os.Getenv(name); token != "" {
+			req.Header.Set("Authorization", "Bearer "+token)
+			break
+		}
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	switch {
+	case resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusTooManyRequests:
+		return "", fmt.Errorf("%s: GitHub API rate limit (HTTP %s); set GITHUB_TOKEN and retry", rel.Repo, resp.Status)
+	case resp.StatusCode != http.StatusOK:
+		return "", fmt.Errorf("%s %s: release metadata: HTTP %s", rel.Repo, tag, resp.Status)
+	}
+	var meta struct {
+		Assets []struct {
+			Name   string `json:"name"`
+			Digest string `json:"digest"`
+		} `json:"assets"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&meta); err != nil {
+		return "", fmt.Errorf("%s %s: release metadata: %w", rel.Repo, tag, err)
+	}
+	for _, a := range meta.Assets {
+		if a.Name != asset {
+			continue
+		}
+		digest, ok := strings.CutPrefix(a.Digest, "sha256:")
+		if !ok || len(digest) != sha256.Size*2 {
+			return "", fmt.Errorf("%s %s: GitHub records no SHA-256 for %s; refusing to install it unverified", rel.Repo, tag, asset)
+		}
+		return strings.ToLower(digest), nil
+	}
+	return "", fmt.Errorf("%s %s: release has no asset %s", rel.Repo, tag, asset)
 }
 
 func extractTarGz(r io.Reader, dir string) error {

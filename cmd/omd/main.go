@@ -45,8 +45,10 @@ func run(args []string) error {
 
 Usage:
   omd                     Open the package selection TUI
-  omd install [--quiet]    Install saved selections, upgrade outdated release tools,
-                          and regenerate shell env
+  omd install [--quiet] [--defaults]
+                          Install saved selections, upgrade outdated release tools,
+                          and regenerate shell env; --defaults saves and installs
+                          the default selection when none is saved yet
   omd outdated            List enabled tools (GitHub releases, Node.js, npm) with newer versions
   omd env                 Regenerate shell env without installing anything
   omd update [--force]     Update the oh-my-dotfiles repository, then check versions of enabled tools
@@ -76,6 +78,7 @@ Disabling a package stops its shell integration; it does not uninstall it.
 	case "install", "env":
 		fs := flag.NewFlagSet(args[0], flag.ContinueOnError)
 		quiet := fs.Bool("quiet", false, "hide successful install output; retain errors and install.log")
+		defaults := fs.Bool("defaults", false, "without a saved selection, save and install the default one")
 		if err := fs.Parse(args[1:]); err != nil {
 			if errors.Is(err, flag.ErrHelp) {
 				return nil
@@ -86,14 +89,18 @@ Disabling a package stops its shell integration; it does not uninstall it.
 			return fmt.Errorf("unexpected arguments: %v", fs.Args())
 		}
 		selected, err := m.loadConfig()
-		if errors.Is(err, os.ErrNotExist) {
-			return errors.New("no packages.conf; run omd to select packages first")
+		if errors.Is(err, os.ErrNotExist) && *defaults && args[0] == "install" {
+			// Unattended first run: the selection the TUI would preselect.
+			selected = m.defaultSelection()
+			err = m.saveConfig(selected)
+		} else if errors.Is(err, os.ErrNotExist) {
+			return errors.New("no packages.conf; run omd to select packages, or omd install --defaults")
 		}
 		if err != nil {
 			return err
 		}
 		if args[0] == "env" {
-			return m.generateEnv(selected)
+			return errors.Join(m.reportLegacyXDG(os.Stdout), m.generateEnv(selected))
 		}
 		return m.install(selected, *quiet, os.Stdout)
 	case "update":

@@ -41,6 +41,8 @@ etc/*
 !etc/tmux/
 !etc/zsh/
 etc/lazygit/state.yml
+# Real inventory: hosts, users and vault secrets stay local (see hosts.example.yaml).
+etc/ansible/hosts.yaml
 etc/kitty/*.bak
 etc/kitty/*.pre*
 etc/kitty/kitty.conf.default-reference

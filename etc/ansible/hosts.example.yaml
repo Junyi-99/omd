@@ -1,0 +1,21 @@
+# Template. Copy to hosts.yaml (git-ignored) and fill in real hosts:
+#   cp etc/ansible/hosts.example.yaml etc/ansible/hosts.yaml
+# brew install hudochenkov/sshpass/sshpass   # or: apt install sshpass
+
+# ansible my-cluster -m ping -i hosts.yaml --ask-vault-pass
+
+my-cluster:
+  hosts:
+    node[0:2].example.com:
+      ansible_user: YOUR_USERNAME
+      ansible_port: 22
+      # ansible_password: !vault |
+      #   $ANSIBLE_VAULT;1.1;AES256
+      #   ...
+
+# raw / command / shell: https://www.unixarena.com/2018/07/ansible-command-vs-shell-vs-raw-modules.html/
+# ansible -i etc/ansible/hosts.yaml my-cluster -m raw -a "uname -a"      # works without python
+# ansible -i etc/ansible/hosts.yaml my-cluster -m command -a "uname -a"  # needs python, no pipes
+# ansible -i etc/ansible/hosts.yaml my-cluster -m shell -a "w | grep me" # needs python, pipes ok
+
+# ansible-galaxy collection install prometheus.prometheus

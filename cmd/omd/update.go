@@ -70,7 +70,7 @@ func (m *manager) updateWithOptions(force, quiet bool) error {
 		}
 		if behind != "0" {
 			fmt.Printf("Diverged from %s; merging (no rebase)...\n", upstream)
-			if _, err := git("merge", "--no-rebase", "--no-edit", upstream); err != nil {
+			if _, err := git("merge", "--no-edit", upstream); err != nil {
 				return err
 			}
 		}

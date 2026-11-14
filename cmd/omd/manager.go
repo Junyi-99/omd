@@ -20,8 +20,10 @@ type manager struct {
 	root, home, platform string
 	// arch is runtime.GOARCH; the launcher builds omd natively, so it also
 	// matches the userland of a 64-bit kernel running 32-bit binaries.
-	arch     string
-	github   string
+	arch   string
+	github string
+	// api is the GitHub REST API, which records each release asset's SHA-256.
+	api      string
 	packages []Package
 }
 
@@ -44,6 +46,7 @@ func newManager() (*manager, error) {
 		platform: runtime.GOOS,
 		arch:     runtime.GOARCH,
 		github:   "https://github.com",
+		api:      "https://api.github.com",
 		packages: packagesFor(runtime.GOOS),
 	}, nil
 }
@@ -290,12 +293,16 @@ func (m *manager) install(selected map[string]bool, quiet bool, out io.Writer) e
 	if !quiet {
 		output = io.MultiWriter(out, log)
 	}
+	var failures []error
+	if err := m.reportLegacyXDG(output); err != nil {
+		failures = append(failures, err)
+		fmt.Fprintf(output, "✗ %v\n", err)
+	}
 	selected = m.withNeeds(selected)
 	ordered := m.installOrder(selected)
 	// One concurrent pass decides install vs upgrade; installPackage verifies
 	// afterwards. A check that timed out is reported, never treated as missing.
 	present, checkErr := m.probeAll(ordered)
-	var failures []error
 	if checkErr != nil {
 		failures = append(failures, checkErr)
 		fmt.Fprintf(output, "✗ %v\n", checkErr)

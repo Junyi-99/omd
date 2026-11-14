@@ -9,9 +9,10 @@
 
 ## Features
 - **out-of-the-box**
-- **minimal side effects**
+- **self-contained**
   - most operations happen in `~/.oh-my-dotfiles`
-  - `XDG_CONFIG_HOME` is set to `~/.oh-my-dotfiles/etc/`, so XDG-aware tools (tmux, neovim, etc.) read configs directly from the repo
+  - `XDG_CONFIG_HOME` is set to `~/.oh-my-dotfiles/etc/` and `XDG_DATA_HOME` to `~/.oh-my-dotfiles/data/`, so XDG-aware tools (tmux, neovim, etc.) read configs directly from the repo
+  - side effect: tools now look there instead of `~/.config` and `~/.local/share`. `omd install` / `omd env` symlink every existing entry of those directories into the repo (so `gh` logins, git config, etc. keep working in every shell) and list the names the repo already has, which you merge by hand
   - third-party binaries will be downloaded into `~/.oh-my-dotfiles/bin` or `~/.oh-my-dotfiles/deps` (See [XDG Base Directory Specification](https://specifications.freedesktop.org/basedir-spec/latest/index.html))
 - neovim
   - AI assistant ([copilot.lua](https://github.com/zbirenbaum/copilot.lua))
@@ -49,6 +50,11 @@ platform and revision (see below).
 ```
 
 Defaults are preselected for your OS on the first run; press Enter in the TUI to install.
+For an unattended setup (provisioning scripts, containers), replace the final
+`~/.oh-my-dotfiles/bin/omd` with `~/.oh-my-dotfiles/bin/omd install --defaults`.
+
+Personal settings go in `etc/zsh/*.local` (git-ignored, sourced at the end of
+`zshrc`): aliases for your accounts, agent CLIs without permission prompts, and so on.
 
 ## omd
 
@@ -67,6 +73,7 @@ starts a background update check at the configured interval.
 ```sh
 omd                      # select packages in the TUI
 omd install              # install saved selections; upgrade outdated release tools and Node.js
+omd install --defaults   # first run without the TUI: save and install the default selection
 omd outdated             # list tools (GitHub releases, Node.js) and their available updates
 omd install --quiet      # log normal output; still report failures
 omd env                  # regenerate shell integration without installing
@@ -120,7 +127,10 @@ On macOS, CLI tools install with Homebrew. Linux does not use Homebrew:
 fzf, zoxide, bat, duf, uv, Starship, and Neovim are unpacked from their GitHub
 releases into `dep/<package>` and linked into `bin/`. The archive matches the
 CPU omd was built for (x86_64, arm64, or 32-bit arm, e.g. Raspberry Pi), and
-the installed tag is recorded in `dep/<package>/.omd-version`. The TUI marks
+the installed tag is recorded in `dep/<package>/.omd-version`. Every archive is
+checked against the SHA-256 GitHub recorded when it was uploaded (read from the
+REST API; set `GITHUB_TOKEN` if you hit its anonymous rate limit), and nothing
+is installed when the digest is missing or differs. The TUI marks
 outdated tools with `update <tag>`; `omd outdated` lists them, and Enter or
 `omd install` upgrades the selected ones. Tools from apt or another package
 manager are detected as installed and left to that package manager.
@@ -133,6 +143,13 @@ explicitly. Scheduled updates quietly fast-forward the oh-my-dotfiles repository
 They refuse unpushed commits and leave uncommitted changes alone (git aborts only if they collide with incoming files); use `omd install` to install
 enabled tools.
 The default frequency is weekly; change it with `u` in the TUI and save with `s`.
+
+> [!WARNING]
+> Auto-update runs whatever is on the upstream branch at your next shell
+> start, `zshrc` included. Anyone who can push to the repository you cloned
+> from can therefore run code on every machine that uses it. Clone your own
+> fork, protect its default branch, or set the frequency to `off` and run
+> `omd update` after reviewing the changes.
 
 `omd update` refuses unpushed commits; uncommitted changes are kept unless they collide with incoming files. Use `--force`
 only to deliberately discard tracked local changes and local commits.

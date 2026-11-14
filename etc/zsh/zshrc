@@ -49,8 +49,6 @@ autoload -Uz edit-command-line
 zle -N edit-command-line
 bindkey '^X^E' edit-command-line      # Ctrl+X Ctrl+E
 bindkey '^Xe' edit-command-line       # Ctrl+X e
-export EDITOR=nvim
-export VISUAL=nvim
 
 # --- PATH ---
 # Keep the repo's bin first so its launchers win over system copies.
@@ -59,9 +57,16 @@ path=("$USER_BIN_HOME" "$HOME/bin" "$HOME/.local/bin" $path /usr/local/bin)
 
 # --- omd: load the generated environment; install explicitly with `omd` ---
 if [ ! -f "${XDG_CONFIG_HOME}/omd/packages.conf" ]; then
-    echo "Run 'omd' to select and install your tools."
+    echo "Run 'omd' to select and install your tools (or 'omd install --defaults')."
 fi
 [ -f "${XDG_CONFIG_HOME}/omd/env.sh" ] && source "${XDG_CONFIG_HOME}/omd/env.sh"
+
+# After env.sh, which puts an omd-installed Neovim on PATH.
+if command -v nvim >/dev/null 2>&1; then
+    export EDITOR=nvim VISUAL=nvim
+elif command -v vim >/dev/null 2>&1; then
+    export EDITOR=vim VISUAL=vim
+fi
 
 # After env.sh, so tools installed by omd (e.g. via Homebrew) are on PATH.
 print_greetings
@@ -82,23 +87,15 @@ export BUN_INSTALL="$HOME/.bun"
 # --- 各家 installer 原本塞进 ~/.zshrc 的东西，收拢到这里 ---
 export CLAUDE_CODE_NO_FLICKER=1
 
-# 注意：这行和 etc/tmux/tmux.conf 的 default-terminal "tmux-256color" 不一致，
-# 但 tmux 内部会自己覆盖 TERM，保持原样以免改变行为。
-export TERM=xterm-256color
+# TERM is left to the terminal (xterm-kitty, tmux-256color, ...): the shell
+# starts after the terminal set it, so overriding it here would hide the
+# terminal's real capabilities from every program.
 
 # --- Aliases ---
-alias c="claude --dangerously-skip-permissions"
-alias claude="claude --dangerously-skip-permissions"
-alias codex="codex --dangerously-bypass-approvals-and-sandbox"
-alias zj="zellij"
-alias claude-xtra='CLAUDE_CONFIG_DIR=~/.claude-xtra claude'
-alias claude-junyi='CLAUDE_CONFIG_DIR=~/.claude-junyi claude'
-alias claude-weihao='CLAUDE_CONFIG_DIR=~/.claude-weihao claude'
-alias claude-yufeng='CLAUDE_CONFIG_DIR=~/.claude-yufeng claude'
-alias codex-nus='CODEX_HOME=~/.codex-nus codex'
-alias codex-junyi='CODEX_HOME=~/.codex-junyi codex'
-alias codex-xtra='CODEX_HOME=~/.codex-xtra codex'
-alias s="kitten ssh"
+# Personal aliases (accounts, agents without permission prompts) belong in
+# etc/zsh/*.local, which is git-ignored and sourced at the end of this file.
+command -v zellij >/dev/null 2>&1 && alias zj="zellij"
+command -v kitten >/dev/null 2>&1 && alias s="kitten ssh"
 
 # Reload OMD's generated shell integration after saving or installing selections.
 omd() {
@@ -121,6 +118,8 @@ if [ -n "$OTTY_SHELL_INTEGRATION" ] && [ -r "$OTTY_SHELL_INTEGRATION/otty-integr
     . "$OTTY_SHELL_INTEGRATION/otty-integration.zsh"
 fi
 
-echo ""
-echo "ZSH is ready for ${HOST} 🚀"
-echo ""
+# Machine- or person-specific settings, never committed (see .gitignore).
+for _omd_local in "${XDG_CONFIG_HOME}"/zsh/*.local(N); do
+    source "$_omd_local"
+done
+unset _omd_local

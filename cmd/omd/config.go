@@ -88,8 +88,11 @@ func (m *manager) generateEnv(selected map[string]bool) error {
 			fmt.Fprintf(&b, "\n# %s\n%s", p.ID, p.Env)
 		}
 	}
+	// The shell integration moves XDG_CONFIG_HOME into the repo; keep the
+	// configs under ~/.config visible to it. install and env report the result.
+	_, _, linkErr := m.linkLegacyXDG()
 	// A package whose check timed out is left out and reported, not silently dropped.
-	return errors.Join(atomicWrite(filepath.Join(m.root, "etc", "omd", "env.sh"), b.String()), checkErr)
+	return errors.Join(atomicWrite(filepath.Join(m.root, "etc", "omd", "env.sh"), b.String()), checkErr, linkErr)
 }
 
 // defaultSelection preselects the packages marked Default on this platform.
